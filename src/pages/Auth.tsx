@@ -82,7 +82,7 @@ export default function Auth() {
         description: "Logged in successfully!",
       });
       navigate("/dashboard");
-    } catch (error: any) {
+    } catch (error: { message: string }) {
       toast({
         title: "Error",
         description: error.message || "An error occurred during login",
@@ -127,7 +127,7 @@ export default function Auth() {
           description: "Please check your email to confirm your account.",
         });
       }
-    } catch (error: any) {
+    } catch (error: { message: string }) {
       toast({
         title: "Error",
         description: error.message || "An error occurred during signup",

@@ -48,7 +48,7 @@ export const SettingsManagement = () => {
 
   const { toast } = useToast();
 
-  const handleInputChange = (key: string, value: any) => {
+  const handleInputChange = (key: string, value: string | number | boolean) => {
     setSettings(prev => ({
       ...prev,
       [key]: value
