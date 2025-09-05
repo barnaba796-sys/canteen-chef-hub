@@ -209,11 +209,11 @@ export const PromotionManagement = () => {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-muted-foreground">Start Date</p>
-                    <p className="font-medium">{new Date(promotion.startDate).toLocaleDateString()}</p>
+                    <p className="font-medium">{new Date(promotion.startDate).toLocaleDateString('en-IN')}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">End Date</p>
-                    <p className="font-medium">{new Date(promotion.endDate).toLocaleDateString()}</p>
+                    <p className="font-medium">{new Date(promotion.endDate).toLocaleDateString('en-IN')}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Times Used</p>

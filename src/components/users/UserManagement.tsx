@@ -259,11 +259,11 @@ export const UserManagement = () => {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-muted-foreground">Joined</p>
-                    <p className="font-medium">{new Date(user.createdAt).toLocaleDateString()}</p>
+                    <p className="font-medium">{new Date(user.createdAt).toLocaleDateString('en-IN')}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Last Login</p>
-                    <p className="font-medium">{new Date(user.lastLogin).toLocaleDateString()}</p>
+                    <p className="font-medium">{new Date(user.lastLogin).toLocaleDateString('en-IN')}</p>
                   </div>
                 </div>
 
