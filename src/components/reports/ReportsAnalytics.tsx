@@ -146,7 +146,7 @@ export const ReportsAnalytics = () => {
                     <div className="flex items-center gap-6 text-sm">
                       <div>
                         <span className="text-muted-foreground">Sales: </span>
-                        <span className="font-semibold">₹{data.sales.toLocaleString()}</span>
+                        <span className="font-semibold">₹{data.sales.toLocaleString('en-IN')}</span>
                       </div>
                       <div>
                         <span className="text-muted-foreground">Orders: </span>
@@ -182,7 +182,7 @@ export const ReportsAnalytics = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">₹{product.revenue.toLocaleString()}</p>
+                      <p className="font-semibold">₹{product.revenue.toLocaleString('en-IN')}</p>
                       <p className="text-sm text-muted-foreground">Revenue</p>
                     </div>
                   </div>
