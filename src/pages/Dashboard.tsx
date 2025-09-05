@@ -14,9 +14,6 @@ import { ReportsAnalytics } from "@/components/reports/ReportsAnalytics";
 import { FeedbackManagement } from "@/components/feedback/FeedbackManagement";
 import { UserManagement } from "@/components/users/UserManagement";
 import { SettingsManagement } from "@/components/settings/SettingsManagement";
-import { MenuManagement } from "@/components/menu/MenuManagement";
-import { OrderManagement } from "@/components/orders/OrderManagement";
-import { InventoryManagement } from "@/components/inventory/InventoryManagement";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -42,19 +39,19 @@ const Dashboard = () => {
       case "inventory":
         return <InventoryManagement />;
       case "promotions":
-        return <ComingSoon title="Promotions & Discounts" description="Manage discounts, coupons, and promotional campaigns" />;
+        return <PromotionManagement />;
       case "clearance":
-        return <ComingSoon title="Clearance Sale Management" description="Handle expiring items and clearance sales" />;
+        return <ClearanceManagement />;
       case "billing":
-        return <ComingSoon title="Billing & Payment" description="Process payments and generate bills" />;
+        return <BillingManagement />;
       case "reports":
-        return <ComingSoon title="Reports & Analytics" description="View sales reports and business analytics" />;
+        return <ReportsAnalytics />;
       case "feedback":
-        return <ComingSoon title="Feedback & Support" description="Customer feedback and support system" />;
+        return <FeedbackManagement />;
       case "users":
-        return <ComingSoon title="User Management" description="Manage staff, students, and visitor accounts" />;
+        return <UserManagement />;
       case "settings":
-        return <ComingSoon title="System Settings" description="Configure system preferences and settings" />;
+        return <SettingsManagement />;
       default:
         return (
           <div className="space-y-6 p-6">
