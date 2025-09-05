@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from './use-toast';
@@ -18,7 +18,7 @@ export const useOrders = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     if (!profile?.canteen_id) return;
 
     try {
@@ -44,7 +44,7 @@ export const useOrders = () => {
         variant: 'destructive',
       });
     }
-  };
+  }, [profile?.canteen_id, toast]);
 
   useEffect(() => {
     const loadData = async () => {

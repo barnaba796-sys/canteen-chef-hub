@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from './use-toast';
@@ -12,7 +12,7 @@ export const usePromotions = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
 
-  const fetchPromotions = async () => {
+  const fetchPromotions = useCallback(async () => {
     if (!profile?.canteen_id) return;
 
     try {
@@ -30,7 +30,7 @@ export const usePromotions = () => {
         variant: 'destructive',
       });
     }
-  };
+  }, [profile?.canteen_id, toast]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -46,7 +46,7 @@ export const usePromotions = () => {
     }
   }, [profile?.canteen_id]);
 
-  const addPromotion = async (item: Omit<Promotion, 'id' | 'created_at' | 'updated_at' | 'canteen_id'>) => {
+  const addPromotion = useCallback(async (item: Omit<Promotion, 'id' | 'created_at' | 'updated_at' | 'canteen_id'>) => {
     if (!profile?.canteen_id) return;
 
     try {
@@ -73,9 +73,9 @@ export const usePromotions = () => {
       });
       throw error;
     }
-  };
+  }, [profile?.canteen_id, toast, fetchPromotions]);
 
-  const updatePromotion = async (id: string, updates: Partial<Promotion>) => {
+  const updatePromotion = useCallback(async (id: string, updates: Partial<Promotion>) => {
     try {
       const { error } = await supabase
         .from('promotions')
@@ -98,9 +98,9 @@ export const usePromotions = () => {
       });
       throw error;
     }
-  };
+  }, [toast, fetchPromotions]);
 
-  const deletePromotion = async (id: string) => {
+  const deletePromotion = useCallback(async (id: string) => {
     try {
       const { error } = await supabase
         .from('promotions')
@@ -123,7 +123,7 @@ export const usePromotions = () => {
       });
       throw error;
     }
-  };
+  }, [toast, fetchPromotions]);
 
   return {
     promotions,

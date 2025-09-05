@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from './use-toast';
@@ -12,7 +12,7 @@ export const useUsers = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     if (!profile?.canteen_id) return;
 
     try {
@@ -30,7 +30,7 @@ export const useUsers = () => {
         variant: 'destructive',
       });
     }
-  };
+  }, [profile?.canteen_id, toast]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -48,7 +48,7 @@ export const useUsers = () => {
 
   // Note: In a real application, these admin-level functions should be handled
   // through secure server-side functions, not directly on the client.
-  const addUser = async (userData: any) => {
+  const addUser = useCallback(async (userData: any) => {
     // This is a placeholder. In a real app, you would have a secure way to invite users.
     console.log("Adding user:", userData);
     toast({
@@ -56,9 +56,9 @@ export const useUsers = () => {
       description: 'User added successfully (simulated).',
     });
     await fetchUsers();
-  };
+  }, [fetchUsers, toast]);
 
-  const updateUser = async (id: string, updates: Partial<Profile>) => {
+  const updateUser = useCallback(async (id: string, updates: Partial<Profile>) => {
     try {
       const { error } = await supabase
         .from('profiles')
@@ -81,9 +81,9 @@ export const useUsers = () => {
       });
       throw error;
     }
-  };
+  }, [toast, fetchUsers]);
 
-  const deleteUser = async (id: string) => {
+  const deleteUser = useCallback(async (id: string) => {
     // This is a placeholder. In a real app, you would have a secure way to delete users.
     console.log("Deleting user:", id);
      toast({
@@ -91,7 +91,7 @@ export const useUsers = () => {
       description: 'User deleted successfully (simulated).',
     });
     await fetchUsers();
-  };
+  }, [fetchUsers, toast]);
 
   return {
     users,

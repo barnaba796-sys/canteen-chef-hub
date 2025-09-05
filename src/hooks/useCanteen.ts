@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from './use-toast';
@@ -12,7 +12,7 @@ export const useCanteen = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
 
-  const fetchCanteen = async () => {
+  const fetchCanteen = useCallback(async () => {
     if (!profile?.canteen_id) return;
 
     try {
@@ -31,7 +31,7 @@ export const useCanteen = () => {
         variant: 'destructive',
       });
     }
-  };
+  }, [profile?.canteen_id, toast]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -47,7 +47,7 @@ export const useCanteen = () => {
     }
   }, [profile?.canteen_id]);
 
-  const updateCanteen = async (updates: Partial<Canteen>) => {
+  const updateCanteen = useCallback(async (updates: Partial<Canteen>) => {
     if (!canteen) return;
 
     try {
@@ -72,7 +72,7 @@ export const useCanteen = () => {
       });
       throw error;
     }
-  };
+  }, [canteen, toast, fetchCanteen]);
 
   return {
     canteen,

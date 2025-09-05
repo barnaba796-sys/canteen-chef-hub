@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from './use-toast';
@@ -12,7 +12,7 @@ export const useBilling = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
 
-  const fetchInvoices = async () => {
+  const fetchInvoices = useCallback(async () => {
     if (!profile?.canteen_id) return;
 
     try {
@@ -31,7 +31,7 @@ export const useBilling = () => {
         variant: 'destructive',
       });
     }
-  };
+  }, [profile?.canteen_id, toast]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -47,7 +47,7 @@ export const useBilling = () => {
     }
   }, [profile?.canteen_id]);
 
-  const createInvoice = async (invoiceData: any) => {
+  const createInvoice = useCallback(async (invoiceData: any) => {
     if (!profile?.canteen_id) return;
 
     try {
@@ -78,7 +78,7 @@ export const useBilling = () => {
       });
       throw error;
     }
-  };
+  }, [profile?.canteen_id, toast, fetchInvoices]);
 
   return {
     invoices,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from './use-toast';
@@ -36,7 +36,7 @@ export const useMenuItems = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
 
-  const fetchMenuItems = async () => {
+  const fetchMenuItems = useCallback(async () => {
     if (!profile?.canteen_id) return;
 
     try {
@@ -60,9 +60,9 @@ export const useMenuItems = () => {
         variant: 'destructive',
       });
     }
-  };
+  }, [profile?.canteen_id, toast]);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     if (!profile?.canteen_id) return;
 
     try {
@@ -81,9 +81,9 @@ export const useMenuItems = () => {
         variant: 'destructive',
       });
     }
-  };
+  }, [profile?.canteen_id, toast]);
 
-  const addMenuItem = async (item: Omit<MenuItem, 'id' | 'created_at' | 'updated_at' | 'canteen_id'>) => {
+  const addMenuItem = useCallback(async (item: Omit<MenuItem, 'id' | 'created_at' | 'updated_at' | 'canteen_id'>) => {
     if (!profile?.canteen_id) return;
 
     try {
@@ -110,9 +110,9 @@ export const useMenuItems = () => {
       });
       throw error;
     }
-  };
+  }, [profile?.canteen_id, toast, fetchMenuItems]);
 
-  const updateMenuItem = async (id: string, updates: Partial<MenuItem>) => {
+  const updateMenuItem = useCallback(async (id: string, updates: Partial<MenuItem>) => {
     try {
       const { error } = await supabase
         .from('menu_items')
@@ -135,9 +135,9 @@ export const useMenuItems = () => {
       });
       throw error;
     }
-  };
+  }, [toast, fetchMenuItems]);
 
-  const deleteMenuItem = async (id: string) => {
+  const deleteMenuItem = useCallback(async (id: string) => {
     try {
       const { error } = await supabase
         .from('menu_items')
@@ -160,7 +160,7 @@ export const useMenuItems = () => {
       });
       throw error;
     }
-  };
+  }, [toast, fetchMenuItems]);
 
   useEffect(() => {
     const loadData = async () => {

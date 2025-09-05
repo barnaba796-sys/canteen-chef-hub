@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from './use-toast';
@@ -12,7 +12,7 @@ export const useInventory = () => {
   const { profile } = useAuth();
   const { toast } = useToast();
 
-  const fetchInventoryItems = async () => {
+  const fetchInventoryItems = useCallback(async () => {
     if (!profile?.canteen_id) return;
 
     try {
@@ -30,7 +30,7 @@ export const useInventory = () => {
         variant: 'destructive',
       });
     }
-  };
+  }, [profile?.canteen_id, toast]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -46,7 +46,7 @@ export const useInventory = () => {
     }
   }, [profile?.canteen_id]);
 
-  const addInventoryItem = async (item: Omit<InventoryItem, 'id' | 'created_at' | 'updated_at' | 'canteen_id'>) => {
+  const addInventoryItem = useCallback(async (item: Omit<InventoryItem, 'id' | 'created_at' | 'updated_at' | 'canteen_id'>) => {
     if (!profile?.canteen_id) return;
 
     try {
@@ -73,9 +73,9 @@ export const useInventory = () => {
       });
       throw error;
     }
-  };
+  }, [profile?.canteen_id, toast, fetchInventoryItems]);
 
-  const updateInventoryItem = async (id: string, updates: Partial<InventoryItem>) => {
+  const updateInventoryItem = useCallback(async (id: string, updates: Partial<InventoryItem>) => {
     try {
       const { error } = await supabase
         .from('inventory_items')
@@ -98,9 +98,9 @@ export const useInventory = () => {
       });
       throw error;
     }
-  };
+  }, [toast, fetchInventoryItems]);
 
-  const deleteInventoryItem = async (id: string) => {
+  const deleteInventoryItem = useCallback(async (id: string) => {
     try {
       const { error } = await supabase
         .from('inventory_items')
@@ -123,9 +123,9 @@ export const useInventory = () => {
       });
       throw error;
     }
-  };
+  }, [toast, fetchInventoryItems]);
 
-  const fetchClearanceItems = async () => {
+  const fetchClearanceItems = useCallback(async () => {
     if (!profile?.canteen_id) return;
 
     try {
@@ -145,7 +145,7 @@ export const useInventory = () => {
       });
       return [];
     }
-  };
+  }, [profile?.canteen_id, toast]);
 
   return {
     inventoryItems,
