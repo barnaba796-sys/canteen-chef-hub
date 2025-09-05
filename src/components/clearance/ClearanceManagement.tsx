@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Calendar, Clock, AlertTriangle, IndianRupee, Package2, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AddToClearanceDialog } from "./AddToClearanceDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -49,6 +50,17 @@ const mockClearanceItems = [
 export const ClearanceManagement = () => {
   const [items, setItems] = useState(mockClearanceItems);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const handleAddItem = (item: any) => {
+    const newItem = {
+      ...item,
+      id: items.length + 1,
+      shelfLife: Math.ceil((new Date(item.expiryDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24)),
+      status: "active",
+      discount: Math.round(((item.originalPrice - item.discountedPrice) / item.originalPrice) * 100),
+    };
+    setItems([...items, newItem]);
+  };
   const [filterStatus, setFilterStatus] = useState("all");
 
   const filteredItems = items.filter(item => {
@@ -83,10 +95,7 @@ export const ClearanceManagement = () => {
           <h1 className="text-2xl font-bold text-foreground">Clearance Sale</h1>
           <p className="text-muted-foreground">Manage expiring items and shelf life</p>
         </div>
-        <Button className="gap-2">
-          <Clock className="h-4 w-4" />
-          Add to Clearance
-        </Button>
+        <AddToClearanceDialog onAddItem={handleAddItem} />
       </div>
 
       {/* Quick Stats */}
@@ -233,10 +242,10 @@ export const ClearanceManagement = () => {
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-2">
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => console.log('Edit price for item:', item.id)}>
                     Edit Price
                   </Button>
-                  <Button variant="destructive" size="sm" className="flex-1">
+                  <Button variant="destructive" size="sm" className="flex-1" onClick={() => console.log('Remove item:', item.id)}>
                     Remove
                   </Button>
                 </div>
@@ -256,10 +265,7 @@ export const ClearanceManagement = () => {
                 ? "Try adjusting your search or filter criteria"
                 : "No items are currently on clearance sale"}
             </p>
-            <Button>
-              <Clock className="h-4 w-4 mr-2" />
-              Add Items to Clearance
-            </Button>
+            <AddToClearanceDialog onAddItem={handleAddItem} />
           </CardContent>
         </Card>
       )}

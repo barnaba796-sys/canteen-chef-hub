@@ -96,7 +96,7 @@ const Dashboard = () => {
             <DashboardStats />
             
             <div className="grid gap-6 md:grid-cols-2">
-              <RecentOrders />
+              <RecentOrders onActionClick={setActiveTab} />
               <QuickActions onActionClick={setActiveTab} />
             </div>
             

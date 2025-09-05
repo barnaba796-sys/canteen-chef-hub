@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Users, Plus, Edit, Trash2, Shield, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AddUserDialog } from "./AddUserDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -61,6 +62,17 @@ const rolePermissions = {
 export const UserManagement = () => {
   const [users, setUsers] = useState(mockUsers);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const handleAddUser = (user: any) => {
+    const newUser = {
+      ...user,
+      id: users.length + 1,
+      isActive: true,
+      createdAt: new Date().toISOString().split('T')[0],
+      lastLogin: new Date().toISOString().split('T')[0],
+    };
+    setUsers([...users, newUser]);
+  };
   const [filterRole, setFilterRole] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
 
@@ -106,10 +118,7 @@ export const UserManagement = () => {
           <h1 className="text-2xl font-bold text-foreground">User Management</h1>
           <p className="text-muted-foreground">Manage staff accounts and permissions</p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add New User
-        </Button>
+        <AddUserDialog onAddUser={handleAddUser} />
       </div>
 
       {/* User Stats */}
@@ -233,11 +242,11 @@ export const UserManagement = () => {
                     aria-label="Toggle user status"
                   />
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => console.log('Edit user:', user.id)}>
                       <Edit className="h-4 w-4" />
                     </Button>
                     {user.role !== "owner" && (
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => console.log('Delete user:', user.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
@@ -299,10 +308,7 @@ export const UserManagement = () => {
                 ? "Try adjusting your search or filter criteria"
                 : "No users have been added yet"}
             </p>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add New User
-            </Button>
+            <AddUserDialog onAddUser={handleAddUser} />
           </CardContent>
         </Card>
       )}

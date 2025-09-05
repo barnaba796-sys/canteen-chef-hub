@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Plus, Edit, Trash2, Percent, Calendar, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CreatePromotionDialog } from "./CreatePromotionDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -48,6 +49,16 @@ const mockPromotions = [
 export const PromotionManagement = () => {
   const [promotions, setPromotions] = useState(mockPromotions);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const handleCreatePromotion = (promotion: any) => {
+    const newPromotion = {
+      ...promotion,
+      id: promotions.length + 1,
+      status: "active",
+      usageCount: 0,
+    };
+    setPromotions([...promotions, newPromotion]);
+  };
   const [filterStatus, setFilterStatus] = useState("all");
 
   const filteredPromotions = promotions.filter(promotion => {
@@ -77,10 +88,7 @@ export const PromotionManagement = () => {
           <h1 className="text-2xl font-bold text-foreground">Promotions & Discounts</h1>
           <p className="text-muted-foreground">Manage promotional offers and discounts</p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Create Promotion
-        </Button>
+        <CreatePromotionDialog onCreate={handleCreatePromotion} />
       </div>
 
       {/* Quick Stats */}
@@ -180,10 +188,10 @@ export const PromotionManagement = () => {
                     {promotion.status}
                   </Badge>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => console.log('Edit promotion:', promotion.id)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => console.log('Delete promotion:', promotion.id)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -240,10 +248,7 @@ export const PromotionManagement = () => {
                 ? "Try adjusting your search or filter criteria"
                 : "Create your first promotion to attract more customers"}
             </p>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Promotion
-            </Button>
+            <CreatePromotionDialog onCreate={handleCreatePromotion} />
           </CardContent>
         </Card>
       )}

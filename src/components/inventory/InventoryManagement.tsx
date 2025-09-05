@@ -14,6 +14,7 @@ import {
   Edit
 } from "lucide-react";
 import { useState } from "react";
+import { AddInventoryItemDialog } from "./AddInventoryItemDialog";
 
 const inventoryItems = [
   {
@@ -93,8 +94,19 @@ const categories = ["All", "Meat", "Vegetables", "Bakery", "Dairy", "Beverages"]
 export const InventoryManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [items, setItems] = useState(inventoryItems);
 
-  const filteredItems = inventoryItems.filter(item => {
+  const handleAddItem = (item: any) => {
+    const newItem = {
+      ...item,
+      id: items.length + 1,
+      lastRestocked: new Date().toISOString().split('T')[0],
+      status: "normal",
+    };
+    setItems([...items, newItem]);
+  };
+
+  const filteredItems = items.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = selectedCategory === "All" || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
@@ -154,10 +166,7 @@ export const InventoryManagement = () => {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold">Inventory Management</h2>
-        <Button className="bg-gradient-primary text-primary-foreground shadow-elegant">
-          <Plus className="h-4 w-4 mr-2" />
-          Add New Item
-        </Button>
+        <AddInventoryItemDialog onAddItem={handleAddItem} />
       </div>
 
       {/* Quick Stats */}
@@ -244,7 +253,7 @@ export const InventoryManagement = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   {getStatusBadge(item.status)}
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" onClick={() => console.log('Edit item:', item.id)}>
                     <Edit className="h-4 w-4" />
                   </Button>
                 </div>
@@ -297,10 +306,10 @@ export const InventoryManagement = () => {
                       </span>
                     </div>
                     <div className="flex gap-2 mt-3">
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button variant="outline" size="sm" className="flex-1" onClick={() => console.log('Restock item:', item.id)}>
                         Restock
                       </Button>
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button variant="outline" size="sm" className="flex-1" onClick={() => console.log('Update item:', item.id)}>
                         Update
                       </Button>
                     </div>

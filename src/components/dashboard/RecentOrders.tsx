@@ -1,9 +1,20 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Clock, CheckCircle, XCircle } from "lucide-react";
+import { OrderDetailsDialog } from "./OrderDetailsDialog";
 
-const orders = [
+type Order = {
+  id: string;
+  customer: string;
+  items: string;
+  total: string;
+  status: string;
+  time: string;
+};
+
+const orders: Order[] = [
   {
     id: "#ORD-001",
     customer: "John Doe",
@@ -73,40 +84,50 @@ const getStatusBadge = (status: string) => {
   }
 };
 
-export const RecentOrders = () => {
+export const RecentOrders = ({ onActionClick }: { onActionClick: (action: string) => void }) => {
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
   return (
-    <Card className="shadow-card">
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          Recent Orders
-          <Button variant="outline" size="sm">
-            View All
-          </Button>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {orders.map((order) => (
-            <div key={order.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium">{order.id}</span>
-                  {getStatusBadge(order.status)}
+    <>
+      <Card className="shadow-card">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            Recent Orders
+            <Button variant="outline" size="sm" onClick={() => onActionClick("orders")}>
+              View All
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {orders.map((order) => (
+              <div key={order.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium">{order.id}</span>
+                    {getStatusBadge(order.status)}
+                  </div>
+                  <p className="text-sm text-muted-foreground">{order.customer}</p>
+                  <p className="text-xs text-muted-foreground">{order.items}</p>
                 </div>
-                <p className="text-sm text-muted-foreground">{order.customer}</p>
-                <p className="text-xs text-muted-foreground">{order.items}</p>
+                <div className="text-right">
+                  <p className="font-semibold text-primary">{order.total}</p>
+                  <p className="text-xs text-muted-foreground">{order.time}</p>
+                  <Button variant="ghost" size="sm" className="mt-1" onClick={() => setSelectedOrder(order)}>
+                    <Eye className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="font-semibold text-primary">{order.total}</p>
-                <p className="text-xs text-muted-foreground">{order.time}</p>
-                <Button variant="ghost" size="sm" className="mt-1">
-                  <Eye className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+      {selectedOrder && (
+        <OrderDetailsDialog
+          order={selectedOrder}
+          onOpenChange={() => setSelectedOrder(null)}
+        />
+      )}
+    </>
   );
 };

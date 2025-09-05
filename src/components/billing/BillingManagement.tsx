@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CreditCard, FileText, Download, Eye, IndianRupee, TrendingUp, Calendar, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { NewInvoiceDialog } from "./NewInvoiceDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -50,6 +51,16 @@ const paymentMethods = [
 export const BillingManagement = () => {
   const [invoices, setInvoices] = useState(mockInvoices);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const handleCreateInvoice = (invoice: any) => {
+    const newInvoice = {
+      ...invoice,
+      id: `INV-${String(invoices.length + 1).padStart(3, '0')}`,
+      date: new Date().toISOString().split('T')[0],
+      status: "paid",
+    };
+    setInvoices([newInvoice, ...invoices]);
+  };
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPayment, setFilterPayment] = useState("all");
 
@@ -87,10 +98,7 @@ export const BillingManagement = () => {
             <Download className="h-4 w-4" />
             Export Report
           </Button>
-          <Button className="gap-2">
-            <FileText className="h-4 w-4" />
-            New Invoice
-          </Button>
+          <NewInvoiceDialog onCreate={handleCreateInvoice} />
         </div>
       </div>
 
@@ -246,10 +254,10 @@ export const BillingManagement = () => {
                     </Badge>
                     
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => console.log('View invoice:', invoice.id)}>
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => console.log('Download invoice:', invoice.id)}>
                         <Download className="h-4 w-4" />
                       </Button>
                     </div>
