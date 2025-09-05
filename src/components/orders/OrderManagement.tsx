@@ -221,7 +221,7 @@ export const OrderManagement = () => {
                     {order.items.map((item, index) => (
                       <li key={index} className="flex justify-between">
                         <span>{item.quantity}x {item.name}</span>
-                        <span>${(item.quantity * item.price).toFixed(2)}</span>
+                        <span>₹{(item.quantity * item.price).toFixed(2)}</span>
                       </li>
                     ))}
                   </ul>
@@ -229,7 +229,7 @@ export const OrderManagement = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Total:</span>
-                    <span className="font-semibold text-primary">${order.total.toFixed(2)}</span>
+                    <span className="font-semibold text-primary">₹{order.total.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Time:</span>

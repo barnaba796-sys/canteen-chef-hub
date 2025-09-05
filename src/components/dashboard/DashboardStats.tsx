@@ -1,15 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Package } from "lucide-react";
+import { TrendingUp, TrendingDown, IndianRupee, ShoppingCart, Users, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const stats = [
   {
     title: "Total Revenue",
-    value: "$12,480",
+    value: "₹12,480",
     change: "+12.5%",
     trend: "up",
-    icon: DollarSign,
+    icon: IndianRupee,
     description: "vs last month"
   },
   {

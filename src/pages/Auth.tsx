@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { AuthApiError } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -83,14 +82,10 @@ export default function Auth() {
         description: "Logged in successfully!",
       });
       navigate("/dashboard");
-    } catch (error) {
-      let errorMessage = "An error occurred during login.";
-      if (error instanceof AuthApiError) {
-        errorMessage = error.message;
-      }
+    } catch (error: { message: string }) {
       toast({
-        title: "Login Failed",
-        description: errorMessage,
+        title: "Error",
+        description: error.message || "An error occurred during login",
         variant: "destructive",
       });
     } finally {
