@@ -10,7 +10,7 @@ import {
   Search,
   Filter,
   Printer,
-  MoreVertical,
+  MoreVertical
 } from "lucide-react";
 import { useState } from "react";
 import { useOrders } from "@/hooks/useOrders";
@@ -28,15 +28,11 @@ export const OrderManagement = () => {
   const [statusFilter, setStatusFilter] = useState("All");
   const { orders, loading } = useOrders();
 
-  const filteredOrders = orders.filter((order) => {
-    const matchesSearch =
-      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (order.customer_name &&
-        order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesStatus =
-      statusFilter === "All" ||
-      (order.status &&
-        order.status.toLowerCase() === statusFilter.toLowerCase());
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         (order.customer_name && order.customer_name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesStatus = statusFilter === "All" ||
+                         (order.status && order.status.toLowerCase() === statusFilter.toLowerCase());
     return matchesSearch && matchesStatus;
   });
 
@@ -80,7 +76,7 @@ export const OrderManagement = () => {
     const colors = {
       staff: "bg-secondary text-secondary-foreground",
       student: "bg-accent text-accent-foreground",
-      visitor: "bg-muted text-muted-foreground",
+      visitor: "bg-muted text-muted-foreground"
     };
     return (
       <Badge className={colors[type as keyof typeof colors] || colors.visitor}>
@@ -124,11 +120,7 @@ export const OrderManagement = () => {
               variant={statusFilter === filter ? "default" : "outline"}
               size="sm"
               onClick={() => setStatusFilter(filter)}
-              className={
-                statusFilter === filter
-                  ? "bg-gradient-primary text-primary-foreground"
-                  : ""
-              }
+              className={statusFilter === filter ? "bg-gradient-primary text-primary-foreground" : ""}
             >
               {filter}
             </Button>
@@ -140,100 +132,77 @@ export const OrderManagement = () => {
         {loading ? (
           <p>Loading orders...</p>
         ) : (
-          filteredOrders.map((order) => (
-            <Card
-              key={order.id}
-              className="shadow-card hover:shadow-elegant transition-shadow duration-300"
-            >
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <CardTitle className="text-lg">{order.id}</CardTitle>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-muted-foreground">
-                          {order.customer_name}
-                        </span>
-                        {getCustomerTypeBadge(order.order_type)}
-                      </div>
+        filteredOrders.map((order) => (
+          <Card key={order.id} className="shadow-card hover:shadow-elegant transition-shadow duration-300">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div>
+                    <CardTitle className="text-lg">{order.id}</CardTitle>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-sm text-muted-foreground">{order.customer_name}</span>
+                      {getCustomerTypeBadge(order.order_type)}
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {getStatusBadge(order.status || "unknown")}
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Update Status</DropdownMenuItem>
-                        <DropdownMenuItem>Print Receipt</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          Cancel Order
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div className="md:col-span-2">
-                    <h4 className="font-medium mb-2">Order Items:</h4>
-                    <ul className="space-y-1 text-sm text-muted-foreground">
-                      {order.order_items.map((item, index) => (
-                        <li key={index} className="flex justify-between">
-                          <span>
-                            {item.quantity}x {item.menu_items.name}
-                          </span>
-                          <span>
-                            ₹{(item.quantity * item.unit_price).toFixed(2)}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Total:</span>
-                      <span className="font-semibold text-primary">
-                        ₹{order.total_amount.toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Time:</span>
-                      <span className="text-muted-foreground">
-                        {new Date(order.created_at).toLocaleString("en-IN")}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>ETA:</span>
-                      <span className="font-medium">N/A</span>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full mt-2"
-                      onClick={() => console.log("View order:", order.id)}
-                    >
-                      <Eye className="h-3 w-3 mr-1" />
-                      View Details
-                    </Button>
-                  </div>
+                <div className="flex items-center gap-2">
+                  {getStatusBadge(order.status || 'unknown')}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem>View Details</DropdownMenuItem>
+                      <DropdownMenuItem>Update Status</DropdownMenuItem>
+                      <DropdownMenuItem>Print Receipt</DropdownMenuItem>
+                      <DropdownMenuItem className="text-destructive">Cancel Order</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="md:col-span-2">
+                  <h4 className="font-medium mb-2">Order Items:</h4>
+                  <ul className="space-y-1 text-sm text-muted-foreground">
+                    {order.order_items.map((item, index) => (
+                      <li key={index} className="flex justify-between">
+                        <span>{item.quantity}x {item.menu_items.name}</span>
+                        <span>₹{(item.quantity * item.unit_price).toFixed(2)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Total:</span>
+                    <span className="font-semibold text-primary">₹{order.total_amount.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Time:</span>
+                    <span className="text-muted-foreground">{new Date(order.created_at).toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>ETA:</span>
+                    <span className="font-medium">N/A</span>
+                  </div>
+                  <Button variant="outline" size="sm" className="w-full mt-2" onClick={() => console.log('View order:', order.id)}>
+                    <Eye className="h-3 w-3 mr-1" />
+                    View Details
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {filteredOrders.length === 0 && !loading && (
         <Card className="p-8 text-center">
-          <p className="text-muted-foreground">
-            No orders found matching your criteria.
-          </p>
+          <p className="text-muted-foreground">No orders found matching your criteria.</p>
         </Card>
       )}
     </div>

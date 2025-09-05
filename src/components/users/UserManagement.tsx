@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Users, Plus, Edit, Trash2, Shield, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AddUserDialog } from "./AddUserDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";

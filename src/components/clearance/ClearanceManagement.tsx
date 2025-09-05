@@ -11,17 +11,20 @@ import { useInventory } from "@/hooks/useInventory";
 
 export const ClearanceManagement = () => {
   const [items, setItems] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const { fetchClearanceItems, loading, inventoryItems, updateInventoryItem } = useInventory();
+  const { fetchClearanceItems, updateInventoryItem } = useInventory();
   const [filterStatus, setFilterStatus] = useState("all");
 
   useEffect(() => {
     const loadClearanceItems = async () => {
+      setIsLoading(true);
       const clearanceItems = await fetchClearanceItems();
       setItems(clearanceItems);
+      setIsLoading(false);
     };
     loadClearanceItems();
-  }, [inventoryItems]);
+  }, [fetchClearanceItems]);
 
 
   const handleAddItem = (item: any) => {
@@ -152,7 +155,7 @@ export const ClearanceManagement = () => {
 
       {/* Items Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-        {loading ? <p>Loading...</p> : filteredItems.map((item) => (
+        {isLoading ? <p>Loading clearance items...</p> : filteredItems.map((item) => (
           <Card key={item.id} className="hover:shadow-card transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
@@ -227,7 +230,7 @@ export const ClearanceManagement = () => {
         ))}
       </div>
 
-      {filteredItems.length === 0 && !loading && (
+      {filteredItems.length === 0 && !isLoading && (
         <Card>
           <CardContent className="p-12 text-center">
             <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
