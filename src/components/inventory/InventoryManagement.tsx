@@ -15,102 +15,27 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { AddInventoryItemDialog } from "./AddInventoryItemDialog";
-
-const inventoryItems = [
-  {
-    id: 1,
-    name: "Ground Beef",
-    category: "Meat",
-    currentStock: 2.5,
-    minStock: 5,
-    maxStock: 25,
-    unit: "kg",
-    costPerUnit: 550,
-    supplier: "Fresh Foods Co.",
-    lastRestocked: "2024-01-10",
-    expiryDate: "2024-01-20",
-    status: "low_stock"
-  },
-  {
-    id: 2,
-    name: "Chicken Breast",
-    category: "Meat", 
-    currentStock: 10,
-    minStock: 7,
-    maxStock: 30,
-    unit: "kg",
-    costPerUnit: 680,
-    supplier: "Fresh Foods Co.",
-    lastRestocked: "2024-01-12",
-    expiryDate: "2024-01-25",
-    status: "normal"
-  },
-  {
-    id: 3,
-    name: "Fresh Lettuce",
-    category: "Vegetables",
-    currentStock: 2,
-    minStock: 8,
-    maxStock: 30,
-    unit: "heads",
-    costPerUnit: 2.50,
-    supplier: "Green Valley Farms",
-    lastRestocked: "2024-01-08",
-    expiryDate: "2024-01-18",
-    status: "critical"
-  },
-  {
-    id: 4,
-    name: "Burger Buns",
-    category: "Bakery",
-    currentStock: 45,
-    minStock: 20,
-    maxStock: 100,
-    unit: "pcs",
-    costPerUnit: 0.75,
-    supplier: "City Bakery",
-    lastRestocked: "2024-01-13",
-    expiryDate: "2024-01-16",
-    status: "expiring_soon"
-  },
-  {
-    id: 5,
-    name: "Tomatoes",
-    category: "Vegetables",
-    currentStock: 8,
-    minStock: 5,
-    maxStock: 20,
-    unit: "kg",
-    costPerUnit: 260,
-    supplier: "Green Valley Farms",
-    lastRestocked: "2024-01-11",
-    expiryDate: "2024-01-22",
-    status: "normal"
-  }
-];
+import { useInventory } from "@/hooks/useInventory";
 
 const categories = ["All", "Meat", "Vegetables", "Bakery", "Dairy", "Beverages"];
 
 export const InventoryManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [items, setItems] = useState(inventoryItems);
+  const { inventoryItems, loading, addInventoryItem, updateInventoryItem, deleteInventoryItem } = useInventory();
 
-  const handleAddItem = (item: any) => {
-    const newItem = {
-      ...item,
-      id: items.length + 1,
-      lastRestocked: new Date().toISOString().split('T')[0],
-      status: "normal",
-    };
-    setItems([...items, newItem]);
-  };
-
-  const filteredItems = items.filter(item => {
+  const filteredItems = inventoryItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = selectedCategory === "All" || item.category === selectedCategory;
+    const matchesCategory = selectedCategory === "All" || (item.category && item.category === selectedCategory);
     return matchesSearch && matchesCategory;
   });
+
+  const getStatus = (item: any) => {
+    if (item.currentStock <= item.minStock * 0.5) return "critical";
+    if (item.currentStock <= item.minStock) return "low_stock";
+    if (item.expiry_date && new Date(item.expiry_date) < new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)) return "expiring_soon";
+    return "normal";
+  }
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -166,7 +91,7 @@ export const InventoryManagement = () => {
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold">Inventory Management</h2>
-        <AddInventoryItemDialog onAddItem={handleAddItem} />
+        <AddInventoryItemDialog onAddItem={addInventoryItem} />
       </div>
 
       {/* Quick Stats */}
@@ -178,7 +103,7 @@ export const InventoryManagement = () => {
                 <AlertTriangle className="h-5 w-5 text-destructive-foreground" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-destructive">{criticalItems}</p>
+                <p className="text-2xl font-bold text-destructive">{inventoryItems.filter(item => getStatus(item) === 'critical').length}</p>
                 <p className="text-sm text-muted-foreground">Critical Items</p>
               </div>
             </div>
@@ -191,7 +116,7 @@ export const InventoryManagement = () => {
                 <TrendingDown className="h-5 w-5 text-warning-foreground" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-warning">{lowStockItems}</p>
+                <p className="text-2xl font-bold text-warning">{inventoryItems.filter(item => getStatus(item) === 'low_stock').length}</p>
                 <p className="text-sm text-muted-foreground">Low Stock</p>
               </div>
             </div>
@@ -204,7 +129,7 @@ export const InventoryManagement = () => {
                 <Calendar className="h-5 w-5 text-accent-foreground" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-accent-foreground">{expiringItems}</p>
+                <p className="text-2xl font-bold text-accent-foreground">{inventoryItems.filter(item => getStatus(item) === 'expiring_soon').length}</p>
                 <p className="text-sm text-muted-foreground">Expiring Soon</p>
               </div>
             </div>
@@ -252,7 +177,7 @@ export const InventoryManagement = () => {
                   <p className="text-sm text-muted-foreground">{item.category} • {item.supplier}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  {getStatusBadge(item.status)}
+                  {getStatusBadge(getStatus(item))}
                   <Button variant="ghost" size="icon" onClick={() => console.log('Edit item:', item.id)}>
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -266,15 +191,15 @@ export const InventoryManagement = () => {
                     <div>
                       <div className="flex justify-between text-sm mb-1">
                         <span>Stock Level</span>
-                        <span>{item.currentStock} / {item.maxStock} {item.unit}</span>
+                        <span>{item.current_stock} / {item.max_stock} {item.unit}</span>
                       </div>
                       <Progress 
-                        value={getStockPercentage(item.currentStock, item.maxStock)} 
+                        value={getStockPercentage(item.current_stock, item.max_stock)}
                         className="h-2"
                       />
                       <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                        <span>Min: {item.minStock}</span>
-                        <span>Max: {item.maxStock}</span>
+                        <span>Min: {item.min_stock}</span>
+                        <span>Max: {item.max_stock}</span>
                       </div>
                     </div>
                   </div>
@@ -283,17 +208,17 @@ export const InventoryManagement = () => {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span>Cost/Unit:</span>
-                      <span className="font-medium">₹{item.costPerUnit}</span>
+                      <span className="font-medium">₹{item.cost_per_unit}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Total Value:</span>
                       <span className="font-medium text-primary">
-                        ₹{(item.currentStock * item.costPerUnit).toFixed(2)}
+                        ₹{(item.current_stock * item.cost_per_unit).toFixed(2)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Last Restocked:</span>
-                      <span className="text-muted-foreground">{item.lastRestocked}</span>
+                      <span className="text-muted-foreground">{item.last_restocked}</span>
                     </div>
                   </div>
                 </div>
@@ -301,8 +226,8 @@ export const InventoryManagement = () => {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span>Expiry Date:</span>
-                      <span className={item.status === "expiring_soon" ? "text-warning font-medium" : "text-muted-foreground"}>
-                        {item.expiryDate}
+                      <span className={getStatus(item) === "expiring_soon" ? "text-warning font-medium" : "text-muted-foreground"}>
+                        {item.expiry_date}
                       </span>
                     </div>
                     <div className="flex gap-2 mt-3">
@@ -321,7 +246,7 @@ export const InventoryManagement = () => {
         ))}
       </div>
 
-      {filteredItems.length === 0 && (
+      {filteredItems.length === 0 && !loading && (
         <Card className="p-8 text-center">
           <p className="text-muted-foreground">No inventory items found matching your criteria.</p>
         </Card>

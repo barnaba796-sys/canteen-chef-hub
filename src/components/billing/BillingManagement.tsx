@@ -7,39 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-
-const mockInvoices = [
-  {
-    id: "INV-001",
-    customerName: "John Doe",
-    date: "2024-01-15",
-    amount: 450,
-    paymentMethod: "Cash",
-    status: "paid",
-    items: 3,
-    orderType: "dine_in"
-  },
-  {
-    id: "INV-002",
-    customerName: "Jane Smith",
-    date: "2024-01-15",
-    amount: 320,
-    paymentMethod: "UPI",
-    status: "paid",
-    items: 2,
-    orderType: "takeaway"
-  },
-  {
-    id: "INV-003",
-    customerName: "Bob Wilson",
-    date: "2024-01-14",
-    amount: 180,
-    paymentMethod: "Card",
-    status: "pending",
-    items: 1,
-    orderType: "dine_in"
-  }
-];
+import { useBilling } from "@/hooks/useBilling";
 
 const paymentMethods = [
   { name: "Cash", count: 45, amount: 15650, color: "bg-green-100 text-green-800" },
@@ -49,37 +17,28 @@ const paymentMethods = [
 ];
 
 export const BillingManagement = () => {
-  const [invoices, setInvoices] = useState(mockInvoices);
   const [searchTerm, setSearchTerm] = useState("");
-
-  const handleCreateInvoice = (invoice: any) => {
-    const newInvoice = {
-      ...invoice,
-      id: `INV-${String(invoices.length + 1).padStart(3, '0')}`,
-      date: new Date().toISOString().split('T')[0],
-      status: "paid",
-    };
-    setInvoices([newInvoice, ...invoices]);
-  };
+  const { invoices, loading, createInvoice } = useBilling();
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPayment, setFilterPayment] = useState("all");
 
   const filteredInvoices = invoices.filter(invoice => {
     const matchesSearch = invoice.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         invoice.customerName.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === "all" || invoice.status === filterStatus;
-    const matchesPayment = filterPayment === "all" || invoice.paymentMethod.toLowerCase() === filterPayment.toLowerCase();
+                         (invoice.customer_name && invoice.customer_name.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesStatus = filterStatus === "all" || (invoice.status && invoice.status.toLowerCase() === filterStatus);
+    const matchesPayment = filterPayment === "all" || (invoice.payment_method && invoice.payment_method.toLowerCase() === filterPayment.toLowerCase());
     return matchesSearch && matchesStatus && matchesPayment;
   });
 
-  const totalRevenue = invoices.reduce((sum, invoice) => sum + invoice.amount, 0);
+  const totalRevenue = invoices.reduce((sum, invoice) => sum + invoice.total_amount, 0);
   const todayRevenue = invoices
-    .filter(invoice => invoice.date === "2024-01-15")
-    .reduce((sum, invoice) => sum + invoice.amount, 0);
+    .filter(invoice => new Date(invoice.created_at).toDateString() === new Date().toDateString())
+    .reduce((sum, invoice) => sum + invoice.total_amount, 0);
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status: string | null) => {
+    if (!status) return "bg-gray-100 text-gray-800";
     switch (status) {
-      case "paid": return "bg-green-100 text-green-800";
+      case "completed": return "bg-green-100 text-green-800";
       case "pending": return "bg-yellow-100 text-yellow-800";
       case "overdue": return "bg-red-100 text-red-800";
       default: return "bg-gray-100 text-gray-800";
@@ -98,7 +57,7 @@ export const BillingManagement = () => {
             <Download className="h-4 w-4" />
             Export Report
           </Button>
-          <NewInvoiceDialog onCreate={handleCreateInvoice} />
+          <NewInvoiceDialog onCreate={createInvoice} />
         </div>
       </div>
 
@@ -112,7 +71,7 @@ export const BillingManagement = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Today's Revenue</p>
-                <p className="text-xl font-bold">₹{todayRevenue}</p>
+                <p className="text-xl font-bold">₹{todayRevenue.toFixed(2)}</p>
               </div>
             </div>
           </CardContent>
@@ -126,7 +85,7 @@ export const BillingManagement = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Revenue</p>
-                <p className="text-xl font-bold">₹{totalRevenue}</p>
+                <p className="text-xl font-bold">₹{totalRevenue.toFixed(2)}</p>
               </div>
             </div>
           </CardContent>
@@ -154,7 +113,7 @@ export const BillingManagement = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Pending Payments</p>
-                <p className="text-xl font-bold">1</p>
+                <p className="text-xl font-bold">{invoices.filter(i => i.status === 'pending').length}</p>
               </div>
             </div>
           </CardContent>
@@ -230,7 +189,7 @@ export const BillingManagement = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredInvoices.map((invoice) => (
+            {loading ? <p>Loading invoices...</p> : filteredInvoices.map((invoice) => (
               <div key={invoice.id} className="border rounded-lg p-4 hover:bg-accent/50 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
@@ -239,14 +198,14 @@ export const BillingManagement = () => {
                     </div>
                     <div>
                       <h4 className="font-semibold">{invoice.id}</h4>
-                      <p className="text-sm text-muted-foreground">{invoice.customerName}</p>
+                      <p className="text-sm text-muted-foreground">{invoice.customer_name}</p>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="font-semibold">₹{invoice.amount}</p>
-                      <p className="text-sm text-muted-foreground">{invoice.paymentMethod}</p>
+                      <p className="font-semibold">₹{invoice.total_amount}</p>
+                      <p className="text-sm text-muted-foreground">{invoice.payment_method}</p>
                     </div>
                     
                     <Badge className={getStatusColor(invoice.status)}>
@@ -267,15 +226,15 @@ export const BillingManagement = () => {
                 <Separator className="my-3" />
                 
                 <div className="grid grid-cols-3 gap-4 text-sm text-muted-foreground">
-                  <div>Date: {new Date(invoice.date).toLocaleDateString('en-IN')}</div>
-                  <div>Items: {invoice.items}</div>
-                  <div>Type: {invoice.orderType.replace('_', ' ')}</div>
+                  <div>Date: {new Date(invoice.created_at).toLocaleDateString('en-IN')}</div>
+                  <div>Items: 0</div>
+                  <div>Type: {invoice.order_type ? invoice.order_type.replace('_', ' ') : ''}</div>
                 </div>
               </div>
             ))}
           </div>
 
-          {filteredInvoices.length === 0 && (
+          {filteredInvoices.length === 0 && !loading && (
             <div className="text-center py-8">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No invoices found</h3>

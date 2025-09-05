@@ -8,49 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Switch } from "@/components/ui/switch";
-
-const mockUsers = [
-  {
-    id: 1,
-    fullName: "John Doe",
-    email: "john@canteenpro.com",
-    phone: "+91 9876543210",
-    role: "owner",
-    isActive: true,
-    createdAt: "2024-01-01",
-    lastLogin: "2024-01-15"
-  },
-  {
-    id: 2,
-    fullName: "Jane Smith",
-    email: "jane@canteenpro.com",
-    phone: "+91 9876543211",
-    role: "manager",
-    isActive: true,
-    createdAt: "2024-01-05",
-    lastLogin: "2024-01-15"
-  },
-  {
-    id: 3,
-    fullName: "Mike Johnson",
-    email: "mike@canteenpro.com",
-    phone: "+91 9876543212",
-    role: "chef",
-    isActive: true,
-    createdAt: "2024-01-10",
-    lastLogin: "2024-01-14"
-  },
-  {
-    id: 4,
-    fullName: "Sarah Wilson",
-    email: "sarah@canteenpro.com",
-    phone: "+91 9876543213",
-    role: "cashier",
-    isActive: false,
-    createdAt: "2024-01-12",
-    lastLogin: "2024-01-13"
-  }
-];
+import { useUsers } from "@/hooks/useUsers";
 
 const rolePermissions = {
   owner: ["All Permissions", "Manage Users", "Manage Settings", "View Reports"],
@@ -60,29 +18,18 @@ const rolePermissions = {
 };
 
 export const UserManagement = () => {
-  const [users, setUsers] = useState(mockUsers);
   const [searchTerm, setSearchTerm] = useState("");
-
-  const handleAddUser = (user: any) => {
-    const newUser = {
-      ...user,
-      id: users.length + 1,
-      isActive: true,
-      createdAt: new Date().toISOString().split('T')[0],
-      lastLogin: new Date().toISOString().split('T')[0],
-    };
-    setUsers([...users, newUser]);
-  };
+  const { users, loading, addUser, updateUser, deleteUser } = useUsers();
   const [filterRole, setFilterRole] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = filterRole === "all" || user.role === filterRole;
     const matchesStatus = filterStatus === "all" || 
-                         (filterStatus === "active" && user.isActive) ||
-                         (filterStatus === "inactive" && !user.isActive);
+                         (filterStatus === "active" && user.is_active) ||
+                         (filterStatus === "inactive" && !user.is_active);
     return matchesSearch && matchesRole && matchesStatus;
   });
 
@@ -96,15 +43,13 @@ export const UserManagement = () => {
     }
   };
 
-  const toggleUserStatus = (id: number) => {
-    setUsers(prev => prev.map(user => 
-      user.id === id ? { ...user, isActive: !user.isActive } : user
-    ));
+  const toggleUserStatus = (id: string, isActive: boolean) => {
+    updateUser(id, { is_active: !isActive });
   };
 
   const roleStats = {
     total: users.length,
-    active: users.filter(u => u.isActive).length,
+    active: users.filter(u => u.is_active).length,
     owner: users.filter(u => u.role === "owner").length,
     manager: users.filter(u => u.role === "manager").length,
     chef: users.filter(u => u.role === "chef").length,
@@ -118,7 +63,7 @@ export const UserManagement = () => {
           <h1 className="text-2xl font-bold text-foreground">User Management</h1>
           <p className="text-muted-foreground">Manage staff accounts and permissions</p>
         </div>
-        <AddUserDialog onAddUser={handleAddUser} />
+        <AddUserDialog onAddUser={addUser} />
       </div>
 
       {/* User Stats */}
@@ -214,31 +159,31 @@ export const UserManagement = () => {
 
       {/* Users Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {filteredUsers.map((user) => (
+        {loading ? <p>Loading users...</p> : filteredUsers.map((user) => (
           <Card key={user.id} className="hover:shadow-card transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-start gap-3">
                   <Avatar>
-                    <AvatarImage src="" />
-                    <AvatarFallback>{user.fullName.charAt(0)}</AvatarFallback>
+                    <AvatarImage src={user.avatar_url || ""} />
+                    <AvatarFallback>{user.full_name ? user.full_name.charAt(0) : user.email.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>
-                    <h4 className="font-semibold">{user.fullName}</h4>
+                    <h4 className="font-semibold">{user.full_name}</h4>
                     <div className="flex items-center gap-2 mt-1">
                       <Badge className={getRoleColor(user.role)}>
                         {user.role}
                       </Badge>
-                      <Badge variant={user.isActive ? "default" : "secondary"}>
-                        {user.isActive ? "Active" : "Inactive"}
+                      <Badge variant={user.is_active ? "default" : "secondary"}>
+                        {user.is_active ? "Active" : "Inactive"}
                       </Badge>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch
-                    checked={user.isActive}
-                    onCheckedChange={() => toggleUserStatus(user.id)}
+                    checked={user.is_active || false}
+                    onCheckedChange={() => toggleUserStatus(user.id, user.is_active || false)}
                     aria-label="Toggle user status"
                   />
                   <div className="flex gap-1">
@@ -246,7 +191,7 @@ export const UserManagement = () => {
                       <Edit className="h-4 w-4" />
                     </Button>
                     {user.role !== "owner" && (
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => console.log('Delete user:', user.id)}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteUser(user.id)}>
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
@@ -268,11 +213,11 @@ export const UserManagement = () => {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-muted-foreground">Joined</p>
-                    <p className="font-medium">{new Date(user.createdAt).toLocaleDateString('en-IN')}</p>
+                    <p className="font-medium">{new Date(user.created_at).toLocaleDateString('en-IN')}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Last Login</p>
-                    <p className="font-medium">{new Date(user.lastLogin).toLocaleDateString('en-IN')}</p>
+                    <p className="font-medium">{new Date(user.updated_at).toLocaleDateString('en-IN')}</p>
                   </div>
                 </div>
 
@@ -298,7 +243,7 @@ export const UserManagement = () => {
         ))}
       </div>
 
-      {filteredUsers.length === 0 && (
+      {filteredUsers.length === 0 && !loading && (
         <Card>
           <CardContent className="p-12 text-center">
             <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -308,10 +253,11 @@ export const UserManagement = () => {
                 ? "Try adjusting your search or filter criteria"
                 : "No users have been added yet"}
             </p>
-            <AddUserDialog onAddUser={handleAddUser} />
+            <AddUserDialog onAddUser={addUser} />
           </CardContent>
         </Card>
       )}
+      ))}
     </div>
   );
 };

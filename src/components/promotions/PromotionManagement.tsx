@@ -6,65 +6,26 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-const mockPromotions = [
-  {
-    id: 1,
-    name: "Lunch Special",
-    type: "percentage",
-    value: 15,
-    description: "15% off on all lunch items",
-    startDate: "2024-01-15",
-    endDate: "2024-01-31",
-    status: "active",
-    usageCount: 145,
-    target: "all"
-  },
-  {
-    id: 2,
-    name: "Student Discount",
-    type: "fixed",
-    value: 50,
-    description: "₹50 off for students",
-    startDate: "2024-01-01",
-    endDate: "2024-12-31",
-    status: "active",
-    usageCount: 89,
-    target: "category"
-  },
-  {
-    id: 3,
-    name: "Weekend Combo",
-    type: "percentage",
-    value: 20,
-    description: "20% off on combo meals",
-    startDate: "2024-01-10",
-    endDate: "2024-01-20",
-    status: "expired",
-    usageCount: 234,
-    target: "item"
-  }
-];
+import { usePromotions } from "@/hooks/usePromotions";
 
 export const PromotionManagement = () => {
-  const [promotions, setPromotions] = useState(mockPromotions);
   const [searchTerm, setSearchTerm] = useState("");
-
-  const handleCreatePromotion = (promotion: any) => {
-    const newPromotion = {
-      ...promotion,
-      id: promotions.length + 1,
-      status: "active",
-      usageCount: 0,
-    };
-    setPromotions([...promotions, newPromotion]);
-  };
   const [filterStatus, setFilterStatus] = useState("all");
+  const { promotions, loading, addPromotion, deletePromotion } = usePromotions();
+
+  const getStatus = (promotion: any) => {
+    const now = new Date();
+    const startDate = new Date(promotion.start_date);
+    const endDate = new Date(promotion.end_date);
+    if (now < startDate) return "scheduled";
+    if (now > endDate) return "expired";
+    return "active";
+  }
 
   const filteredPromotions = promotions.filter(promotion => {
     const matchesSearch = promotion.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         promotion.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === "all" || promotion.status === filterStatus;
+                         (promotion.description && promotion.description.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesStatus = filterStatus === "all" || getStatus(promotion) === filterStatus;
     return matchesSearch && matchesStatus;
   });
 
@@ -88,7 +49,7 @@ export const PromotionManagement = () => {
           <h1 className="text-2xl font-bold text-foreground">Promotions & Discounts</h1>
           <p className="text-muted-foreground">Manage promotional offers and discounts</p>
         </div>
-        <CreatePromotionDialog onCreate={handleCreatePromotion} />
+        <CreatePromotionDialog onCreate={addPromotion} />
       </div>
 
       {/* Quick Stats */}
@@ -101,7 +62,7 @@ export const PromotionManagement = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Active Promotions</p>
-                <p className="text-xl font-bold">2</p>
+                <p className="text-xl font-bold">{promotions.filter(p => getStatus(p) === 'active').length}</p>
               </div>
             </div>
           </CardContent>
@@ -114,8 +75,8 @@ export const PromotionManagement = () => {
                 <Percent className="h-5 w-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Usage</p>
-                <p className="text-xl font-bold">468</p>
+                <p className="text-sm text-muted-foreground">Total Promotions</p>
+                <p className="text-xl font-bold">{promotions.length}</p>
               </div>
             </div>
           </CardContent>
@@ -129,7 +90,7 @@ export const PromotionManagement = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Scheduled</p>
-                <p className="text-xl font-bold">0</p>
+                <p className="text-xl font-bold">{promotions.filter(p => getStatus(p) === 'scheduled').length}</p>
               </div>
             </div>
           </CardContent>
@@ -138,12 +99,12 @@ export const PromotionManagement = () => {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                <span className="text-orange-600 font-bold">₹</span>
+              <div className="h-10 w-10 bg-red-100 rounded-lg flex items-center justify-center">
+                <Calendar className="h-5 w-5 text-red-600" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Savings Given</p>
-                <p className="text-xl font-bold">₹15,240</p>
+                <p className="text-sm text-muted-foreground">Expired</p>
+                <p className="text-xl font-bold">{promotions.filter(p => getStatus(p) === 'expired').length}</p>
               </div>
             </div>
           </CardContent>
@@ -184,8 +145,8 @@ export const PromotionManagement = () => {
                   </CardDescription>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge className={getStatusColor(promotion.status)}>
-                    {promotion.status}
+                  <Badge className={getStatusColor(getStatus(promotion))}>
+                    {getStatus(promotion)}
                   </Badge>
                   <div className="flex gap-1">
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => console.log('Edit promotion:', promotion.id)}>
@@ -204,7 +165,7 @@ export const PromotionManagement = () => {
                   <div className="flex items-center gap-2">
                     <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center">
                       <span className="text-primary font-bold text-sm">
-                        {getTypeIcon(promotion.type)}
+                        {getTypeIcon(promotion.type || 'percentage')}
                       </span>
                     </div>
                     <span className="font-semibold text-lg">
@@ -217,15 +178,15 @@ export const PromotionManagement = () => {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-muted-foreground">Start Date</p>
-                    <p className="font-medium">{new Date(promotion.startDate).toLocaleDateString('en-IN')}</p>
+                    <p className="font-medium">{promotion.start_date ? new Date(promotion.start_date).toLocaleDateString('en-IN') : 'N/A'}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">End Date</p>
-                    <p className="font-medium">{new Date(promotion.endDate).toLocaleDateString('en-IN')}</p>
+                    <p className="font-medium">{promotion.end_date ? new Date(promotion.end_date).toLocaleDateString('en-IN') : 'N/A'}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Times Used</p>
-                    <p className="font-medium">{promotion.usageCount}</p>
+                    <p className="font-medium">0</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Target</p>
@@ -238,7 +199,7 @@ export const PromotionManagement = () => {
         ))}
       </div>
 
-      {filteredPromotions.length === 0 && (
+      {filteredPromotions.length === 0 && !loading && (
         <Card>
           <CardContent className="p-12 text-center">
             <Percent className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -248,7 +209,7 @@ export const PromotionManagement = () => {
                 ? "Try adjusting your search or filter criteria"
                 : "Create your first promotion to attract more customers"}
             </p>
-            <CreatePromotionDialog onCreate={handleCreatePromotion} />
+            <CreatePromotionDialog onCreate={addPromotion} />
           </CardContent>
         </Card>
       )}

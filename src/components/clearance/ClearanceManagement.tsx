@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar, Clock, AlertTriangle, IndianRupee, Package2, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AddToClearanceDialog } from "./AddToClearanceDialog";
@@ -7,68 +7,40 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-
-const mockClearanceItems = [
-  {
-    id: 1,
-    name: "Chicken Sandwich",
-    category: "Main Course",
-    originalPrice: 120,
-    discountedPrice: 80,
-    expiryDate: "2024-01-16",
-    stock: 8,
-    shelfLife: 2, // days remaining
-    status: "active",
-    discount: 33
-  },
-  {
-    id: 2,
-    name: "Fresh Fruit Salad",
-    category: "Healthy",
-    originalPrice: 90,
-    discountedPrice: 60,
-    expiryDate: "2024-01-15",
-    stock: 5,
-    shelfLife: 1,
-    status: "urgent",
-    discount: 33
-  },
-  {
-    id: 3,
-    name: "Vegetable Curry",
-    category: "Main Course",
-    originalPrice: 100,
-    discountedPrice: 50,
-    expiryDate: "2024-01-17",
-    stock: 12,
-    shelfLife: 3,
-    status: "scheduled",
-    discount: 50
-  }
-];
+import { useInventory } from "@/hooks/useInventory";
 
 export const ClearanceManagement = () => {
-  const [items, setItems] = useState(mockClearanceItems);
+  const [items, setItems] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const { fetchClearanceItems, loading, inventoryItems, updateInventoryItem } = useInventory();
+  const [filterStatus, setFilterStatus] = useState("all");
+
+  useEffect(() => {
+    const loadClearanceItems = async () => {
+      const clearanceItems = await fetchClearanceItems();
+      setItems(clearanceItems);
+    };
+    loadClearanceItems();
+  }, [inventoryItems]);
+
 
   const handleAddItem = (item: any) => {
-    const newItem = {
-      ...item,
-      id: items.length + 1,
-      shelfLife: Math.ceil((new Date(item.expiryDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24)),
-      status: "active",
-      discount: Math.round(((item.originalPrice - item.discountedPrice) / item.originalPrice) * 100),
-    };
-    setItems([...items, newItem]);
+    // This should ideally be handled by the backend, by setting is_on_clearance to true
+    // and setting a discounted price. For now, we will just log it.
+    console.log("Adding item to clearance:", item);
   };
-  const [filterStatus, setFilterStatus] = useState("all");
 
   const filteredItems = items.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         item.category.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === "all" || item.status === filterStatus;
+                         (item.category && item.category.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesStatus = filterStatus === "all" || getStatus(item) === filterStatus;
     return matchesSearch && matchesStatus;
   });
+
+  const getStatus = (item: any) => {
+    if (item.expiry_date && new Date(item.expiry_date) < new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)) return "urgent";
+    return "active";
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -85,8 +57,8 @@ export const ClearanceManagement = () => {
     return "text-green-600";
   };
 
-  const totalRevenue = items.reduce((sum, item) => sum + (item.discountedPrice * item.stock), 0);
-  const totalSavings = items.reduce((sum, item) => sum + ((item.originalPrice - item.discountedPrice) * item.stock), 0);
+  const totalRevenue = items.reduce((sum, item) => sum + (item.cost_per_unit * 0.8 * item.current_stock), 0); // Assuming 20% discount
+  const totalSavings = items.reduce((sum, item) => sum + (item.cost_per_unit * 0.2 * item.current_stock), 0); // Assuming 20% discount
 
   return (
     <div className="space-y-6">
@@ -108,7 +80,7 @@ export const ClearanceManagement = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Urgent Items</p>
-                <p className="text-xl font-bold text-red-600">1</p>
+                <p className="text-xl font-bold text-red-600">{items.filter(item => getStatus(item) === 'urgent').length}</p>
               </div>
             </div>
           </CardContent>
@@ -180,7 +152,7 @@ export const ClearanceManagement = () => {
 
       {/* Items Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-        {filteredItems.map((item) => (
+        {loading ? <p>Loading...</p> : filteredItems.map((item) => (
           <Card key={item.id} className="hover:shadow-card transition-shadow">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
@@ -188,8 +160,8 @@ export const ClearanceManagement = () => {
                   <CardTitle className="text-lg">{item.name}</CardTitle>
                   <CardDescription>{item.category}</CardDescription>
                 </div>
-                <Badge className={getStatusColor(item.status)}>
-                  {item.status}
+                <Badge className={getStatusColor(getStatus(item))}>
+                  {getStatus(item)}
                 </Badge>
               </div>
             </CardHeader>
@@ -199,18 +171,18 @@ export const ClearanceManagement = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-muted-foreground">Original Price</p>
-                    <p className="text-lg line-through text-muted-foreground">₹{item.originalPrice}</p>
+                    <p className="text-lg line-through text-muted-foreground">₹{item.cost_per_unit}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm text-muted-foreground">Sale Price</p>
-                    <p className="text-lg font-bold text-primary">₹{item.discountedPrice}</p>
+                    <p className="text-lg font-bold text-primary">₹{(item.cost_per_unit * 0.8).toFixed(2)}</p>
                   </div>
                 </div>
 
                 {/* Discount Badge */}
                 <div className="flex items-center justify-center">
                   <Badge variant="secondary" className="bg-green-100 text-green-800">
-                    {item.discount}% OFF
+                    20% OFF
                   </Badge>
                 </div>
 
@@ -218,11 +190,11 @@ export const ClearanceManagement = () => {
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-muted-foreground">Stock</p>
-                    <p className="font-medium">{item.stock} units</p>
+                    <p className="font-medium">{item.current_stock} {item.unit}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Expiry</p>
-                    <p className="font-medium">{new Date(item.expiryDate).toLocaleDateString('en-IN')}</p>
+                    <p className="font-medium">{item.expiry_date ? new Date(item.expiry_date).toLocaleDateString('en-IN') : 'N/A'}</p>
                   </div>
                 </div>
 
@@ -230,13 +202,13 @@ export const ClearanceManagement = () => {
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm text-muted-foreground">Shelf Life</p>
-                    <p className={`text-sm font-medium ${getShelfLifeColor(item.shelfLife)}`}>
-                      {item.shelfLife} day{item.shelfLife !== 1 ? 's' : ''} left
+                    <p className={`text-sm font-medium ${getShelfLifeColor(item.expiry_date ? Math.ceil((new Date(item.expiry_date).getTime() - new Date().getTime()) / (1000 * 3600 * 24)) : 99)}`}>
+                      {item.expiry_date ? `${Math.ceil((new Date(item.expiry_date).getTime() - new Date().getTime()) / (1000 * 3600 * 24))} days left` : 'N/A'}
                     </p>
                   </div>
                   <Progress 
-                    value={(item.shelfLife / 7) * 100} 
-                    className={`h-2 ${item.shelfLife <= 1 ? 'bg-red-100' : item.shelfLife <= 2 ? 'bg-orange-100' : 'bg-green-100'}`}
+                    value={item.expiry_date ? (Math.ceil((new Date(item.expiry_date).getTime() - new Date().getTime()) / (1000 * 3600 * 24)) / 7) * 100 : 100}
+                    className={`h-2 ${item.expiry_date && new Date(item.expiry_date) < new Date(Date.now() + 3 * 24 * 60 * 60 * 1000) ? 'bg-red-100' : 'bg-green-100'}`}
                   />
                 </div>
 
@@ -245,7 +217,7 @@ export const ClearanceManagement = () => {
                   <Button variant="outline" size="sm" className="flex-1" onClick={() => console.log('Edit price for item:', item.id)}>
                     Edit Price
                   </Button>
-                  <Button variant="destructive" size="sm" className="flex-1" onClick={() => console.log('Remove item:', item.id)}>
+                  <Button variant="destructive" size="sm" className="flex-1" onClick={() => updateInventoryItem(item.id, { is_on_clearance: false })}>
                     Remove
                   </Button>
                 </div>
@@ -255,7 +227,7 @@ export const ClearanceManagement = () => {
         ))}
       </div>
 
-      {filteredItems.length === 0 && (
+      {filteredItems.length === 0 && !loading && (
         <Card>
           <CardContent className="p-12 text-center">
             <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
