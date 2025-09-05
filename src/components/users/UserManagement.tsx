@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Users, Plus, Edit, Trash2, Shield, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AddUserDialog } from "./AddUserDialog";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -26,7 +27,7 @@ export const UserManagement = () => {
     const matchesSearch = (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = filterRole === "all" || user.role === filterRole;
-    const matchesStatus = filterStatus === "all" || 
+    const matchesStatus = filterStatus === "all" ||
                          (filterStatus === "active" && user.is_active) ||
                          (filterStatus === "inactive" && !user.is_active);
     return matchesSearch && matchesRole && matchesStatus;
@@ -80,7 +81,7 @@ export const UserManagement = () => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -208,7 +209,7 @@ export const UserManagement = () => {
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   <span>{user.phone}</span>
                 </div>
-                
+
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-muted-foreground">Joined</p>
