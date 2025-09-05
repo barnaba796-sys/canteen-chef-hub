@@ -1,7 +1,8 @@
-import { Bell, User, Search, Menu as MenuIcon } from "lucide-react";
+import { Bell, User, Search, Menu as MenuIcon, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +22,11 @@ interface NavbarProps {
 }
 
 export const Navbar = ({ onMenuToggle, user }: NavbarProps) => {
+  const { signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
   return (
     <header className="bg-card border-b border-border h-16 flex items-center justify-between px-4 lg:px-6 shadow-card">
       <div className="flex items-center gap-4">
@@ -79,7 +85,13 @@ export const Navbar = ({ onMenuToggle, user }: NavbarProps) => {
             <DropdownMenuItem>Profile Settings</DropdownMenuItem>
             <DropdownMenuItem>Preferences</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">Sign Out</DropdownMenuItem>
+            <DropdownMenuItem 
+              className="text-destructive cursor-pointer"
+              onClick={handleSignOut}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
