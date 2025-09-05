@@ -257,7 +257,6 @@ export const UserManagement = () => {
           </CardContent>
         </Card>
       )}
-      ))}
     </div>
   );
 };
