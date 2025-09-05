@@ -23,7 +23,7 @@ import {
   TrendingUp, 
   Users, 
   ShoppingCart, 
-  DollarSign,
+  IndianRupee,
   AlertTriangle,
   Zap
 } from "lucide-react";

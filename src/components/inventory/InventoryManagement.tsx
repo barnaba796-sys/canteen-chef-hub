@@ -274,12 +274,12 @@ export const InventoryManagement = () => {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span>Cost/Unit:</span>
-                      <span className="font-medium">${item.costPerUnit}</span>
+                      <span className="font-medium">₹{item.costPerUnit}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Total Value:</span>
                       <span className="font-medium text-primary">
-                        ${(item.currentStock * item.costPerUnit).toFixed(2)}
+                        ₹{(item.currentStock * item.costPerUnit).toFixed(2)}
                       </span>
                     </div>
                     <div className="flex justify-between">

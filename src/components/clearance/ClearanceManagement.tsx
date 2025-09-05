@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calendar, Clock, AlertTriangle, DollarSign, Package2, TrendingDown } from "lucide-react";
+import { Calendar, Clock, AlertTriangle, IndianRupee, Package2, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -123,7 +123,7 @@ export const ClearanceManagement = () => {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
-                <DollarSign className="h-5 w-5 text-green-600" />
+                <IndianRupee className="h-5 w-5 text-green-600" />
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Potential Revenue</p>

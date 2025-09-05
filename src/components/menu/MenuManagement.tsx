@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Edit, Trash2, DollarSign, Package } from "lucide-react";
+import { Plus, Search, Edit, Trash2, IndianRupee, Package } from "lucide-react";
 import { useState } from "react";
 import { useMenuItems } from "@/hooks/useMenuItems";
 import { AddMenuItemDialog } from "./AddMenuItemDialog";
@@ -112,8 +112,8 @@ export const MenuManagement = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <DollarSign className="h-4 w-4 text-primary" />
-                    <span className="font-semibold text-primary">${item.price}</span>
+                    <IndianRupee className="h-4 w-4 text-primary" />
+                    <span className="font-semibold text-primary">₹{item.price}</span>
                   </div>
                   {item.preparation_time && (
                     <div className="flex items-center gap-2">
