@@ -171,6 +171,8 @@ export const useMenuItems = () => {
 
     if (profile?.canteen_id) {
       loadData();
+    } else {
+      setLoading(false);
     }
   }, [profile?.canteen_id]);
 
