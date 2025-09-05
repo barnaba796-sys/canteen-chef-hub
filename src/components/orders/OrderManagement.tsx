@@ -205,7 +205,6 @@ export const OrderManagement = () => {
           <p className="text-muted-foreground">No orders found matching your criteria.</p>
         </Card>
       )}
-      ))}
     </div>
   );
 };
