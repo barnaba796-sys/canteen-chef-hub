@@ -1,46 +1,66 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown, DollarSign, ShoppingCart, Users, Package } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-
-const stats = [
-  {
-    title: "Total Revenue",
-    value: "$12,480",
-    change: "+12.5%",
-    trend: "up",
-    icon: DollarSign,
-    description: "vs last month"
-  },
-  {
-    title: "Orders Today",
-    value: "248",
-    change: "+8.2%",
-    trend: "up",
-    icon: ShoppingCart,
-    description: "vs yesterday"
-  },
-  {
-    title: "Active Customers",
-    value: "1,420",
-    change: "+2.1%",
-    trend: "up",
-    icon: Users,
-    description: "this week"
-  },
-  {
-    title: "Low Stock Items",
-    value: "12",
-    change: "-3",
-    trend: "down",
-    icon: Package,
-    description: "items need restock"
-  }
-];
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 
 export const DashboardStats = () => {
+  const { stats, loading } = useDashboardStats();
+
+  if (loading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Card key={i} className="shadow-card">
+            <CardHeader className="pb-2">
+              <div className="h-4 bg-muted rounded animate-pulse" />
+            </CardHeader>
+            <CardContent>
+              <div className="h-8 bg-muted rounded animate-pulse mb-2" />
+              <div className="h-3 bg-muted rounded animate-pulse" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  const statsData = [
+    {
+      title: "Total Revenue",
+      value: `$${stats.totalRevenue.toFixed(2)}`,
+      change: "+12.5%",
+      trend: "up",
+      icon: DollarSign,
+      description: "total earnings"
+    },
+    {
+      title: "Total Orders",
+      value: stats.totalOrders.toString(),
+      change: "+8.2%",
+      trend: "up",
+      icon: ShoppingCart,
+      description: "all time orders"
+    },
+    {
+      title: "Today's Orders",
+      value: stats.todayOrders.toString(),
+      change: "+2.1%",
+      trend: "up",
+      icon: Users,
+      description: "orders today"
+    },
+    {
+      title: "Menu Items",
+      value: stats.activeMenuItems.toString(),
+      change: "+0",
+      trend: "up",
+      icon: Package,
+      description: "active items"
+    }
+  ];
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {stats.map((stat, index) => (
+      {statsData.map((stat, index) => (
         <Card key={index} className="shadow-card hover:shadow-elegant transition-shadow duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
