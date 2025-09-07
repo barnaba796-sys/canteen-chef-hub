@@ -23,7 +23,7 @@ export const UserManagement = () => {
   const [filterStatus, setFilterStatus] = useState("all");
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = (user.full_name && user.full_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    const matchesSearch = (user.full_name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
                          user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole = filterRole === "all" || user.role === filterRole;
     const matchesStatus = filterStatus === "all" ||
