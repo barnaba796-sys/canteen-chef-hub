@@ -1,98 +1,31 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Package, 
-  AlertTriangle, 
-  Plus, 
-  Search, 
-  TrendingDown,
-  TrendingUp,
-  Calendar,
-  Edit
-} from "lucide-react";
+import { Plus, Search, AlertTriangle, Package, TrendingDown, Edit, Trash2, Calendar } from "lucide-react";
 import { useState } from "react";
-
-const inventoryItems = [
-  {
-    id: 1,
-    name: "Ground Beef",
-    category: "Meat",
-    currentStock: 5,
-    minStock: 10,
-    maxStock: 50,
-    unit: "lbs",
-    costPerUnit: 6.99,
-    supplier: "Fresh Foods Co.",
-    lastRestocked: "2024-01-10",
-    expiryDate: "2024-01-20",
-    status: "low_stock"
-  },
-  {
-    id: 2,
-    name: "Chicken Breast",
-    category: "Meat", 
-    currentStock: 25,
-    minStock: 15,
-    maxStock: 60,
-    unit: "lbs",
-    costPerUnit: 8.50,
-    supplier: "Fresh Foods Co.",
-    lastRestocked: "2024-01-12",
-    expiryDate: "2024-01-25",
-    status: "normal"
-  },
-  {
-    id: 3,
-    name: "Fresh Lettuce",
-    category: "Vegetables",
-    currentStock: 2,
-    minStock: 8,
-    maxStock: 30,
-    unit: "heads",
-    costPerUnit: 2.50,
-    supplier: "Green Valley Farms",
-    lastRestocked: "2024-01-08",
-    expiryDate: "2024-01-18",
-    status: "critical"
-  },
-  {
-    id: 4,
-    name: "Burger Buns",
-    category: "Bakery",
-    currentStock: 45,
-    minStock: 20,
-    maxStock: 100,
-    unit: "pcs",
-    costPerUnit: 0.75,
-    supplier: "City Bakery",
-    lastRestocked: "2024-01-13",
-    expiryDate: "2024-01-16",
-    status: "expiring_soon"
-  },
-  {
-    id: 5,
-    name: "Tomatoes",
-    category: "Vegetables",
-    currentStock: 18,
-    minStock: 12,
-    maxStock: 40,
-    unit: "lbs",
-    costPerUnit: 3.25,
-    supplier: "Green Valley Farms",
-    lastRestocked: "2024-01-11",
-    expiryDate: "2024-01-22",
-    status: "normal"
-  }
-];
-
-const categories = ["All", "Meat", "Vegetables", "Bakery", "Dairy", "Beverages"];
+import { useInventory } from "@/hooks/useInventory";
+import { AddInventoryDialog } from "./AddInventoryDialog";
+import { RestockDialog } from "./RestockDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export const InventoryManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const { inventoryItems, loading, deleteInventoryItem } = useInventory();
+
+  const categories = ["All", ...Array.from(new Set(inventoryItems.map(item => item.category)))];
 
   const filteredItems = inventoryItems.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -100,64 +33,77 @@ export const InventoryManagement = () => {
     return matchesSearch && matchesCategory;
   });
 
+  // Calculate quick stats
+  const criticalItems = inventoryItems.filter(item => item.status === 'out_of_stock').length;
+  const lowStockItems = inventoryItems.filter(item => item.status === 'low_stock').length;
+  const expiringSoonItems = inventoryItems.filter(item => item.status === 'expiring_soon' || item.status === 'expired').length;
+
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "critical":
-        return (
-          <Badge className="bg-destructive text-destructive-foreground">
-            <AlertTriangle className="h-3 w-3 mr-1" />
-            Critical
-          </Badge>
-        );
-      case "low_stock":
+      case 'good':
+        return <Badge className="bg-success text-success-foreground">In Stock</Badge>;
+      case 'low_stock':
         return (
           <Badge className="bg-warning text-warning-foreground">
             <TrendingDown className="h-3 w-3 mr-1" />
             Low Stock
           </Badge>
         );
-      case "expiring_soon":
+      case 'out_of_stock':
         return (
-          <Badge className="bg-accent-light text-accent-foreground">
+          <Badge className="bg-destructive text-destructive-foreground">
+            <AlertTriangle className="h-3 w-3 mr-1" />
+            Out of Stock
+          </Badge>
+        );
+      case 'expiring_soon':
+        return (
+          <Badge className="bg-orange-500 text-white">
             <Calendar className="h-3 w-3 mr-1" />
             Expiring Soon
           </Badge>
         );
-      case "normal":
-        return (
-          <Badge className="bg-success text-success-foreground">
-            <TrendingUp className="h-3 w-3 mr-1" />
-            Normal
-          </Badge>
-        );
+      case 'expired':
+        return <Badge className="bg-red-600 text-white">Expired</Badge>;
       default:
         return <Badge>{status}</Badge>;
     }
   };
 
-  const getStockPercentage = (current: number, max: number) => {
-    return (current / max) * 100;
+  const getStockPercentage = (current: number, min: number, max: number) => {
+    return Math.min((current / max) * 100, 100);
   };
 
   const getProgressColor = (current: number, min: number, max: number) => {
     const percentage = (current / max) * 100;
-    if (current <= min * 0.5) return "bg-destructive";
+    if (current === 0) return "bg-destructive";
     if (current <= min) return "bg-warning";
-    return "bg-success";
+    if (percentage >= 80) return "bg-success";
+    return "bg-primary";
   };
 
-  const criticalItems = inventoryItems.filter(item => item.status === "critical").length;
-  const lowStockItems = inventoryItems.filter(item => item.status === "low_stock").length;
-  const expiringItems = inventoryItems.filter(item => item.status === "expiring_soon").length;
+  const handleDelete = async (itemId: string) => {
+    await deleteInventoryItem(itemId);
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-3xl font-bold">Inventory Management</h2>
+        </div>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Loading inventory...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-6">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold">Inventory Management</h2>
-        <Button className="bg-gradient-primary text-primary-foreground shadow-elegant">
-          <Plus className="h-4 w-4 mr-2" />
-          Add New Item
-        </Button>
+        <AddInventoryDialog />
       </div>
 
       {/* Quick Stats */}
@@ -191,11 +137,11 @@ export const InventoryManagement = () => {
         <Card className="shadow-card">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 bg-accent rounded-lg flex items-center justify-center">
-                <Calendar className="h-5 w-5 text-accent-foreground" />
+              <div className="h-10 w-10 bg-orange-500 rounded-lg flex items-center justify-center">
+                <Calendar className="h-5 w-5 text-white" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-accent-foreground">{expiringItems}</p>
+                <p className="text-2xl font-bold text-orange-600">{expiringSoonItems}</p>
                 <p className="text-sm text-muted-foreground">Expiring Soon</p>
               </div>
             </div>
@@ -241,11 +187,14 @@ export const InventoryManagement = () => {
                     {item.name}
                   </CardTitle>
                   <p className="text-sm text-muted-foreground">{item.category} • {item.supplier}</p>
+                  {item.description && (
+                    <p className="text-xs text-muted-foreground mt-1">{item.description}</p>
+                  )}
                 </div>
                 <div className="flex items-center gap-2">
                   {getStatusBadge(item.status)}
-                  <Button variant="ghost" size="icon">
-                    <Edit className="h-4 w-4" />
+                  <Button variant="outline" size="sm">
+                    <Edit className="h-3 w-3" />
                   </Button>
                 </div>
               </div>
@@ -257,15 +206,15 @@ export const InventoryManagement = () => {
                     <div>
                       <div className="flex justify-between text-sm mb-1">
                         <span>Stock Level</span>
-                        <span>{item.currentStock} / {item.maxStock} {item.unit}</span>
+                        <span>{item.current_stock} / {item.max_stock}</span>
                       </div>
                       <Progress 
-                        value={getStockPercentage(item.currentStock, item.maxStock)} 
+                        value={getStockPercentage(item.current_stock, item.min_stock, item.max_stock)} 
                         className="h-2"
                       />
                       <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                        <span>Min: {item.minStock}</span>
-                        <span>Max: {item.maxStock}</span>
+                        <span>Min: {item.min_stock}</span>
+                        <span>Max: {item.max_stock}</span>
                       </div>
                     </div>
                   </div>
@@ -274,17 +223,17 @@ export const InventoryManagement = () => {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span>Cost/Unit:</span>
-                      <span className="font-medium">${item.costPerUnit}</span>
+                      <span className="font-medium">${item.unit_cost.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Total Value:</span>
                       <span className="font-medium text-primary">
-                        ${(item.currentStock * item.costPerUnit).toFixed(2)}
+                        ${item.total_value.toFixed(2)}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Last Restocked:</span>
-                      <span className="text-muted-foreground">{item.lastRestocked}</span>
+                      <span className="text-muted-foreground">{item.last_restocked || 'Never'}</span>
                     </div>
                   </div>
                 </div>
@@ -293,16 +242,44 @@ export const InventoryManagement = () => {
                     <div className="flex justify-between">
                       <span>Expiry Date:</span>
                       <span className={item.status === "expiring_soon" ? "text-warning font-medium" : "text-muted-foreground"}>
-                        {item.expiryDate}
+                        {item.expiry_date || 'N/A'}
                       </span>
                     </div>
                     <div className="flex gap-2 mt-3">
+                      <RestockDialog item={item}>
+                        <Button variant="outline" size="sm" className="flex-1">
+                          <Package className="h-3 w-3 mr-1" />
+                          Restock
+                        </Button>
+                      </RestockDialog>
                       <Button variant="outline" size="sm" className="flex-1">
-                        Restock
-                      </Button>
-                      <Button variant="outline" size="sm" className="flex-1">
+                        <Edit className="h-3 w-3 mr-1" />
                         Update
                       </Button>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Inventory Item</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Are you sure you want to delete "{item.name}"? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDelete(item.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </div>
                   </div>
                 </div>

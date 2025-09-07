@@ -10,7 +10,9 @@ import {
   Search, 
   Filter,
   Printer,
-  MoreVertical
+  MoreVertical,
+  Users,
+  Phone
 } from "lucide-react";
 import { useState } from "react";
 import {
@@ -19,124 +21,70 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useOrders } from "@/hooks/useOrders";
+import { OrderStatusDialog } from "./OrderStatusDialog";
 
-const orders = [
-  {
-    id: "ORD-001",
-    customer: "John Doe",
-    customerType: "staff",
-    items: [
-      { name: "Classic Burger", quantity: 2, price: 8.99 },
-      { name: "Fries", quantity: 1, price: 3.99 },
-      { name: "Coke", quantity: 1, price: 2.50 }
-    ],
-    total: 24.47,
-    status: "preparing",
-    timestamp: "2024-01-15 10:30 AM",
-    estimatedTime: "5 mins"
-  },
-  {
-    id: "ORD-002", 
-    customer: "Sarah Smith",
-    customerType: "student",
-    items: [
-      { name: "Chicken Sandwich", quantity: 1, price: 7.50 },
-      { name: "Coffee", quantity: 1, price: 2.99 }
-    ],
-    total: 10.49,
-    status: "ready",
-    timestamp: "2024-01-15 10:25 AM",
-    estimatedTime: "Ready"
-  },
-  {
-    id: "ORD-003",
-    customer: "Mike Johnson", 
-    customerType: "visitor",
-    items: [
-      { name: "Pizza Slice", quantity: 3, price: 4.99 },
-      { name: "Soft Drink", quantity: 2, price: 2.25 }
-    ],
-    total: 19.47,
-    status: "completed",
-    timestamp: "2024-01-15 10:15 AM",
-    estimatedTime: "Completed"
-  },
-  {
-    id: "ORD-004",
-    customer: "Emily Brown",
-    customerType: "staff", 
-    items: [
-      { name: "Caesar Salad", quantity: 1, price: 6.99 },
-      { name: "Fresh Juice", quantity: 1, price: 3.50 }
-    ],
-    total: 10.49,
-    status: "cancelled",
-    timestamp: "2024-01-15 10:10 AM",
-    estimatedTime: "Cancelled"
-  }
-];
-
-const statusFilters = ["All", "Preparing", "Ready", "Completed", "Cancelled"];
+const statusFilters = ["All", "pending", "preparing", "ready", "completed", "cancelled"];
 
 export const OrderManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
+  const { orders, loading } = useOrders();
 
   const filteredOrders = orders.filter(order => {
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customer.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "All" || 
-                         order.status.toLowerCase() === statusFilter.toLowerCase();
+    const matchesSearch = 
+      order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.customer_name && order.customer_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (order.customer_phone && order.customer_phone.includes(searchTerm));
+    const matchesStatus = statusFilter === "All" || order.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "preparing":
-        return (
-          <Badge className="bg-warning text-warning-foreground">
-            <Clock className="h-3 w-3 mr-1" />
-            Preparing
-          </Badge>
-        );
-      case "ready":
-        return (
-          <Badge className="bg-primary text-primary-foreground">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            Ready
-          </Badge>
-        );
-      case "completed":
-        return (
-          <Badge className="bg-success text-success-foreground">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            Completed
-          </Badge>
-        );
-      case "cancelled":
-        return (
-          <Badge className="bg-destructive text-destructive-foreground">
-            <XCircle className="h-3 w-3 mr-1" />
-            Cancelled
-          </Badge>
-        );
-      default:
-        return <Badge>{status}</Badge>;
-    }
+    const statusConfig = {
+      pending: { color: "bg-yellow-500 text-white", icon: Clock, label: "Pending" },
+      preparing: { color: "bg-blue-500 text-white", icon: Clock, label: "Preparing" },
+      ready: { color: "bg-green-500 text-white", icon: CheckCircle, label: "Ready" },
+      completed: { color: "bg-green-600 text-white", icon: CheckCircle, label: "Completed" },
+      cancelled: { color: "bg-red-500 text-white", icon: XCircle, label: "Cancelled" },
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
+    const Icon = config.icon;
+    
+    return (
+      <Badge className={config.color}>
+        <Icon className="h-3 w-3 mr-1" />
+        {config.label}
+      </Badge>
+    );
   };
 
   const getCustomerTypeBadge = (type: string) => {
     const colors = {
-      staff: "bg-secondary text-secondary-foreground",
-      student: "bg-accent text-accent-foreground", 
-      visitor: "bg-muted text-muted-foreground"
+      dine_in: "bg-blue-100 text-blue-800",
+      takeaway: "bg-green-100 text-green-800",
+      delivery: "bg-purple-100 text-purple-800",
     };
     return (
-      <Badge className={colors[type as keyof typeof colors] || colors.visitor}>
-        {type.charAt(0).toUpperCase() + type.slice(1)}
+      <Badge className={colors[type as keyof typeof colors] || colors.dine_in}>
+        {type.replace('_', ' ').toUpperCase()}
       </Badge>
     );
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6 p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-3xl font-bold">Order Management</h2>
+        </div>
+        <div className="text-center py-12">
+          <p className="text-muted-foreground">Loading orders...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 p-6">
@@ -175,7 +123,7 @@ export const OrderManagement = () => {
               onClick={() => setStatusFilter(filter)}
               className={statusFilter === filter ? "bg-gradient-primary text-primary-foreground" : ""}
             >
-              {filter}
+              {filter === "All" ? filter : filter.charAt(0).toUpperCase() + filter.slice(1)}
             </Button>
           ))}
         </div>
@@ -186,13 +134,20 @@ export const OrderManagement = () => {
           <Card key={order.id} className="shadow-card hover:shadow-elegant transition-shadow duration-300">
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div>
-                    <CardTitle className="text-lg">{order.id}</CardTitle>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-sm text-muted-foreground">{order.customer}</span>
-                      {getCustomerTypeBadge(order.customerType)}
-                    </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-lg">#{order.id.slice(-6)}</CardTitle>
+                    {getCustomerTypeBadge(order.order_type)}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Users className="h-4 w-4" />
+                    <span>{order.customer_name || 'Walk-in Customer'}</span>
+                    {order.customer_phone && (
+                      <>
+                        <Phone className="h-4 w-4 ml-2" />
+                        <span>{order.customer_phone}</span>
+                      </>
+                    )}
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -205,7 +160,6 @@ export const OrderManagement = () => {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
                       <DropdownMenuItem>View Details</DropdownMenuItem>
-                      <DropdownMenuItem>Update Status</DropdownMenuItem>
                       <DropdownMenuItem>Print Receipt</DropdownMenuItem>
                       <DropdownMenuItem className="text-destructive">Cancel Order</DropdownMenuItem>
                     </DropdownMenuContent>
@@ -218,33 +172,48 @@ export const OrderManagement = () => {
                 <div className="md:col-span-2">
                   <h4 className="font-medium mb-2">Order Items:</h4>
                   <ul className="space-y-1 text-sm text-muted-foreground">
-                    {order.items.map((item, index) => (
+                    {order.order_items?.map((item, index) => (
                       <li key={index} className="flex justify-between">
-                        <span>{item.quantity}x {item.name}</span>
-                        <span>${(item.quantity * item.price).toFixed(2)}</span>
+                        <span>{item.quantity}x {item.menu_items?.name || 'Item'}</span>
+                        <span>${item.total_price}</span>
                       </li>
-                    ))}
+                    )) || (
+                      <li className="text-muted-foreground">No items</li>
+                    )}
                   </ul>
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Total:</span>
-                    <span className="font-semibold text-primary">${order.total.toFixed(2)}</span>
+                    <span className="font-semibold text-primary">${order.total_amount}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Time:</span>
-                    <span className="text-muted-foreground">{order.timestamp}</span>
+                    <span className="text-muted-foreground">
+                      {new Date(order.created_at).toLocaleString()}
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>ETA:</span>
-                    <span className="font-medium">{order.estimatedTime}</span>
+                    <span>Payment:</span>
+                    <span className="font-medium">{order.payment_method || 'Cash'}</span>
                   </div>
-                  <Button variant="outline" size="sm" className="w-full mt-2">
-                    <Eye className="h-3 w-3 mr-1" />
-                    View Details
-                  </Button>
+                  <div className="flex gap-2 mt-2">
+                    <OrderStatusDialog order={order}>
+                      <Button variant="outline" size="sm" className="flex-1">
+                        Update Status
+                      </Button>
+                    </OrderStatusDialog>
+                    <Button variant="outline" size="sm">
+                      <Eye className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
               </div>
+              {order.notes && (
+                <div className="mt-3 text-sm text-muted-foreground bg-muted/30 p-2 rounded">
+                  <strong>Notes:</strong> {order.notes}
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}
