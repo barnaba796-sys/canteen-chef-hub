@@ -24,10 +24,10 @@ export const useCanteen = () => {
 
       if (error) throw error;
       setCanteen(data || null);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error fetching canteen data',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
     }
@@ -45,7 +45,7 @@ export const useCanteen = () => {
     } else {
       setLoading(false);
     }
-  }, [profile?.canteen_id]);
+  }, [profile?.canteen_id, fetchCanteen]);
 
   const updateCanteen = useCallback(async (updates: Partial<Canteen>) => {
     if (!canteen) return;
@@ -64,10 +64,10 @@ export const useCanteen = () => {
       });
 
       await fetchCanteen();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
       throw error;

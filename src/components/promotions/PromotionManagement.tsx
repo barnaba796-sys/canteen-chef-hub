@@ -8,12 +8,23 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePromotions } from "@/hooks/usePromotions";
 
+interface Promotion {
+  id: number;
+  name: string;
+  description: string | null;
+  start_date: string;
+  end_date: string;
+  type: string;
+  value: number;
+  target: string;
+}
+
 export const PromotionManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const { promotions, loading, addPromotion, deletePromotion } = usePromotions();
 
-  const getStatus = (promotion: any) => {
+  const getStatus = (promotion: Promotion) => {
     const now = new Date();
     const startDate = new Date(promotion.start_date);
     const endDate = new Date(promotion.end_date);

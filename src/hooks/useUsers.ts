@@ -5,6 +5,9 @@ import { useToast } from './use-toast';
 import { Database } from '@/integrations/supabase/types';
 
 export type Profile = Database['public']['Tables']['profiles']['Row'];
+export type ProfileUpdate = Database['public']['Tables']['profiles']['Update'];
+export type ProfileInsert = Database['public']['Tables']['profiles']['Insert'];
+
 
 export const useUsers = () => {
   const [users, setUsers] = useState<Profile[]>([]);
@@ -23,10 +26,10 @@ export const useUsers = () => {
 
       if (error) throw error;
       setUsers(data || []);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error fetching users',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
     }
@@ -44,11 +47,11 @@ export const useUsers = () => {
     } else {
       setLoading(false);
     }
-  }, [profile?.canteen_id]);
+  }, [profile?.canteen_id, fetchUsers]);
 
   // Note: In a real application, these admin-level functions should be handled
   // through secure server-side functions, not directly on the client.
-  const addUser = useCallback(async (userData: any) => {
+  const addUser = useCallback(async (userData: ProfileInsert) => {
     // This is a placeholder. In a real app, you would have a secure way to invite users.
     console.log("Adding user:", userData);
     toast({
@@ -58,7 +61,7 @@ export const useUsers = () => {
     await fetchUsers();
   }, [fetchUsers, toast]);
 
-  const updateUser = useCallback(async (id: string, updates: Partial<Profile>) => {
+  const updateUser = useCallback(async (id: string, updates: ProfileUpdate) => {
     try {
       const { error } = await supabase
         .from('profiles')
@@ -73,10 +76,10 @@ export const useUsers = () => {
       });
 
       await fetchUsers();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
       throw error;

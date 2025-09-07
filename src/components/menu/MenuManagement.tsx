@@ -35,7 +35,7 @@ export const MenuManagement = () => {
 
   const categoryOptions = ["All", ...categories.map(cat => cat.name), "Uncategorized"];
 
-  const getStatusBadge = (item: any) => {
+  const getStatusBadge = (item: MenuItem) => {
     if (!item.is_available) {
       return <Badge className="bg-destructive text-destructive-foreground">Unavailable</Badge>;
     }

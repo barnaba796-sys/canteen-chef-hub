@@ -17,6 +17,20 @@ import { useState } from "react";
 import { AddInventoryItemDialog } from "./AddInventoryItemDialog";
 import { useInventory } from "@/hooks/useInventory";
 
+interface InventoryItem {
+  id: number;
+  name: string;
+  category: string;
+  supplier: string;
+  current_stock: number;
+  min_stock: number;
+  max_stock: number;
+  cost_per_unit: number;
+  unit: string;
+  last_restocked: string;
+  expiry_date: string | null;
+}
+
 const categories = ["All", "Meat", "Vegetables", "Bakery", "Dairy", "Beverages"];
 
 export const InventoryManagement = () => {
@@ -30,9 +44,9 @@ export const InventoryManagement = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const getStatus = (item: any) => {
-    if (item.currentStock <= item.minStock * 0.5) return "critical";
-    if (item.currentStock <= item.minStock) return "low_stock";
+  const getStatus = (item: InventoryItem) => {
+    if (item.current_stock <= item.min_stock * 0.5) return "critical";
+    if (item.current_stock <= item.min_stock) return "low_stock";
     if (item.expiry_date && new Date(item.expiry_date) < new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)) return "expiring_soon";
     return "normal";
   }
@@ -82,10 +96,6 @@ export const InventoryManagement = () => {
     if (current <= min) return "bg-warning";
     return "bg-success";
   };
-
-  const criticalItems = inventoryItems.filter(item => item.status === "critical").length;
-  const lowStockItems = inventoryItems.filter(item => item.status === "low_stock").length;
-  const expiringItems = inventoryItems.filter(item => item.status === "expiring_soon").length;
 
   return (
     <div className="space-y-6 p-6">

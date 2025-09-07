@@ -11,9 +11,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
 import { useCanteen } from "@/hooks/useCanteen";
 
+interface Canteen {
+  id: number;
+  name: string;
+  phone: string;
+  address: string;
+  description: string;
+}
+
 export const SettingsManagement = () => {
   const { canteen, loading, updateCanteen } = useCanteen();
-  const [settings, setSettings] = useState<any>(canteen);
+  const [settings, setSettings] = useState<Partial<Canteen>>(canteen || {});
 
   useEffect(() => {
     if (canteen) {
@@ -21,8 +29,8 @@ export const SettingsManagement = () => {
     }
   }, [canteen]);
 
-  const handleInputChange = (key: string, value: string | number | boolean) => {
-    setSettings((prev: any) => ({
+  const handleInputChange = (key: keyof Canteen, value: string | number | boolean) => {
+    setSettings((prev) => ({
       ...prev,
       [key]: value
     }));

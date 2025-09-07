@@ -9,8 +9,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { useInventory } from "@/hooks/useInventory";
 
+interface ClearanceItem {
+  id: number;
+  name: string;
+  category: string;
+  cost_per_unit: number;
+  current_stock: number;
+  unit: string;
+  expiry_date: string | null;
+}
+
 export const ClearanceManagement = () => {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<ClearanceItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const { fetchClearanceItems, updateInventoryItem } = useInventory();
@@ -27,7 +37,7 @@ export const ClearanceManagement = () => {
   }, [fetchClearanceItems]);
 
 
-  const handleAddItem = (item: any) => {
+  const handleAddItem = (item: Partial<ClearanceItem>) => {
     // This should ideally be handled by the backend, by setting is_on_clearance to true
     // and setting a discounted price. For now, we will just log it.
     console.log("Adding item to clearance:", item);
@@ -40,7 +50,7 @@ export const ClearanceManagement = () => {
     return matchesSearch && matchesStatus;
   });
 
-  const getStatus = (item: any) => {
+  const getStatus = (item: ClearanceItem) => {
     if (item.expiry_date && new Date(item.expiry_date) < new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)) return "urgent";
     return "active";
   }

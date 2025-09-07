@@ -197,7 +197,8 @@ export const OrderManagement = () => {
               </div>
             </CardContent>
           </Card>
-        ))}
+        )))
+        }
       </div>
 
       {filteredOrders.length === 0 && !loading && (

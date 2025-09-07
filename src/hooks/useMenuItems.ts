@@ -2,32 +2,17 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from './use-toast';
+import { Database } from '@/integrations/supabase/types';
 
-export interface MenuItem {
-  id: string;
-  name: string;
-  description?: string;
-  price: number;
-  category_id?: string;
-  canteen_id: string;
-  image_url?: string;
-  is_available: boolean;
-  is_active: boolean;
-  preparation_time?: number;
-  created_at: string;
-  updated_at: string;
-  categories?: {
-    name: string;
-  };
-}
+type MenuItemRow = Database['public']['Tables']['menu_items']['Row'];
+type CategoryRow = Database['public']['Tables']['categories']['Row'];
 
-export interface Category {
-  id: string;
-  name: string;
-  description?: string;
-  canteen_id: string;
-  is_active: boolean;
-}
+export type MenuItem = MenuItemRow & {
+  categories?: { name: string; } | null;
+};
+export type Category = CategoryRow;
+export type MenuItemInsert = Database['public']['Tables']['menu_items']['Insert'];
+export type MenuItemUpdate = Database['public']['Tables']['menu_items']['Update'];
 
 export const useMenuItems = () => {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -52,11 +37,11 @@ export const useMenuItems = () => {
         .eq('is_active', true);
 
       if (error) throw error;
-      setMenuItems(data || []);
-    } catch (error: any) {
+      setMenuItems(data as MenuItem[] || []);
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
     }
@@ -74,16 +59,16 @@ export const useMenuItems = () => {
 
       if (error) throw error;
       setCategories(data || []);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
     }
   }, [profile?.canteen_id, toast]);
 
-  const addMenuItem = useCallback(async (item: Omit<MenuItem, 'id' | 'created_at' | 'updated_at' | 'canteen_id'>) => {
+  const addMenuItem = useCallback(async (item: MenuItemInsert) => {
     if (!profile?.canteen_id) return;
 
     try {
@@ -102,17 +87,17 @@ export const useMenuItems = () => {
       
       await fetchMenuItems();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
       throw error;
     }
   }, [profile?.canteen_id, toast, fetchMenuItems]);
 
-  const updateMenuItem = useCallback(async (id: string, updates: Partial<MenuItem>) => {
+  const updateMenuItem = useCallback(async (id: string, updates: MenuItemUpdate) => {
     try {
       const { error } = await supabase
         .from('menu_items')
@@ -127,10 +112,10 @@ export const useMenuItems = () => {
       });
       
       await fetchMenuItems();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
       throw error;
@@ -152,10 +137,10 @@ export const useMenuItems = () => {
       });
       
       await fetchMenuItems();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
       throw error;
@@ -174,7 +159,7 @@ export const useMenuItems = () => {
     } else {
       setLoading(false);
     }
-  }, [profile?.canteen_id]);
+  }, [profile?.canteen_id, fetchMenuItems, fetchCategories]);
 
   return {
     menuItems,

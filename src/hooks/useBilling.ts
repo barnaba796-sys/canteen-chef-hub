@@ -5,6 +5,7 @@ import { useToast } from './use-toast';
 import { Database } from '@/integrations/supabase/types';
 
 export type Invoice = Database['public']['Tables']['orders']['Row'];
+export type InvoiceInsert = Database['public']['Tables']['orders']['Insert'];
 
 export const useBilling = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -24,10 +25,10 @@ export const useBilling = () => {
 
       if (error) throw error;
       setInvoices(data || []);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error fetching invoices',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
     }
@@ -45,9 +46,9 @@ export const useBilling = () => {
     } else {
       setLoading(false);
     }
-  }, [profile?.canteen_id]);
+  }, [profile?.canteen_id, fetchInvoices]);
 
-  const createInvoice = useCallback(async (invoiceData: any) => {
+  const createInvoice = useCallback(async (invoiceData: InvoiceInsert) => {
     if (!profile?.canteen_id) return;
 
     try {
@@ -70,10 +71,10 @@ export const useBilling = () => {
 
       await fetchInvoices();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
       throw error;

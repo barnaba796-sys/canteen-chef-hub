@@ -5,6 +5,8 @@ import { useToast } from './use-toast';
 import { Database } from '@/integrations/supabase/types';
 
 export type InventoryItem = Database['public']['Tables']['inventory_items']['Row'];
+export type InventoryItemInsert = Database['public']['Tables']['inventory_items']['Insert'];
+export type InventoryItemUpdate = Database['public']['Tables']['inventory_items']['Update'];
 
 export const useInventory = () => {
   const [inventoryItems, setInventoryItems] = useState<InventoryItem[]>([]);
@@ -23,10 +25,10 @@ export const useInventory = () => {
 
       if (error) throw error;
       setInventoryItems(data || []);
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error fetching inventory items',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
     }
@@ -44,9 +46,9 @@ export const useInventory = () => {
     } else {
       setLoading(false);
     }
-  }, [profile?.canteen_id]);
+  }, [profile?.canteen_id, fetchInventoryItems]);
 
-  const addInventoryItem = useCallback(async (item: Omit<InventoryItem, 'id' | 'created_at' | 'updated_at' | 'canteen_id'>) => {
+  const addInventoryItem = useCallback(async (item: InventoryItemInsert) => {
     if (!profile?.canteen_id) return;
 
     try {
@@ -65,17 +67,17 @@ export const useInventory = () => {
 
       await fetchInventoryItems();
       return data;
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
       throw error;
     }
   }, [profile?.canteen_id, toast, fetchInventoryItems]);
 
-  const updateInventoryItem = useCallback(async (id: string, updates: Partial<InventoryItem>) => {
+  const updateInventoryItem = useCallback(async (id: number, updates: InventoryItemUpdate) => {
     try {
       const { error } = await supabase
         .from('inventory_items')
@@ -90,17 +92,17 @@ export const useInventory = () => {
       });
 
       await fetchInventoryItems();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
       throw error;
     }
   }, [toast, fetchInventoryItems]);
 
-  const deleteInventoryItem = useCallback(async (id: string) => {
+  const deleteInventoryItem = useCallback(async (id: number) => {
     try {
       const { error } = await supabase
         .from('inventory_items')
@@ -115,10 +117,10 @@ export const useInventory = () => {
       });
 
       await fetchInventoryItems();
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
       throw error;
@@ -137,10 +139,10 @@ export const useInventory = () => {
 
       if (error) throw error;
       return data || [];
-    } catch (error: any) {
+    } catch (error) {
       toast({
         title: 'Error fetching clearance items',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
       return [];

@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -62,13 +62,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     } catch (error) {
       console.error('Error fetching profile:', error);
     }
-  };
+  }, []);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     if (user?.id) {
       await fetchProfile(user.id);
     }
-  };
+  }, [user, fetchProfile]);
 
   useEffect(() => {
     // Set up auth state listener
@@ -78,39 +78,35 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch profile data when user logs in
-          setTimeout(() => {
-            fetchProfile(session.user.id);
-          }, 0);
+          await fetchProfile(session.user.id);
         } else {
           setProfile(null);
         }
-        
         setLoading(false);
       }
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        fetchProfile(session.user.id);
+        await fetchProfile(session.user.id);
       }
       
       setLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [fetchProfile]);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error('Error signing out:', error);
     }
-  };
+  }, []);
 
   const value = useMemo(() => ({
     user,
@@ -119,7 +115,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     loading,
     signOut,
     refreshProfile,
-  }), [user, session, profile, loading]);
+  }), [user, session, profile, loading, signOut, refreshProfile]);
 
   return (
     <AuthContext.Provider value={value}>

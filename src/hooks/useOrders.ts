@@ -36,11 +36,11 @@ export const useOrders = () => {
         .eq('canteen_id', profile.canteen_id);
 
       if (error) throw error;
-      setOrders(data || []);
-    } catch (error: any) {
+      setOrders(data as Order[]);
+    } catch (error) {
       toast({
         title: 'Error fetching orders',
-        description: error.message,
+        description: error instanceof Error ? error.message : String(error),
         variant: 'destructive',
       });
     }
@@ -58,7 +58,7 @@ export const useOrders = () => {
     } else {
       setLoading(false);
     }
-  }, [profile?.canteen_id]);
+  }, [profile?.canteen_id, fetchOrders]);
 
   return {
     orders,
