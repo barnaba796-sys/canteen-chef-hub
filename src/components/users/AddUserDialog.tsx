@@ -24,7 +24,7 @@ import { Plus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const userSchema = z.object({
-  fullName: z.string().min(2, "Full name must be at least 2 characters"),
+  full_name: z.string().min(2, "Full name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   phone: z.string().optional(),
   role: z.enum(["owner", "manager", "chef", "cashier"]),
@@ -43,7 +43,7 @@ export const AddUserDialog = ({ onAddUser }: AddUserDialogProps) => {
   const form = useForm<UserForm>({
     resolver: zodResolver(userSchema),
     defaultValues: {
-      fullName: "",
+      full_name: "",
       email: "",
       phone: "",
       role: "cashier",
@@ -78,7 +78,7 @@ export const AddUserDialog = ({ onAddUser }: AddUserDialogProps) => {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="fullName"
+              name="full_name"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
