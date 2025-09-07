@@ -51,13 +51,37 @@ export const useMenuItems = () => {
     if (!profile?.canteen_id) return;
 
     try {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from('categories')
         .select('*')
         .eq('canteen_id', profile.canteen_id)
         .eq('is_active', true);
 
       if (error) throw error;
+
+      if (data && data.length === 0) {
+        // No categories found, let's insert the default ones
+        const defaultCategories = [
+          { name: 'Main Course', description: 'The main dishes of your menu.', canteen_id: profile.canteen_id, is_active: true },
+          { name: 'Beverages', description: 'Drinks and other beverages.', canteen_id: profile.canteen_id, is_active: true },
+          { name: 'Snacks', description: 'Light meals and snacks.', canteen_id: profile.canteen_id, is_active: true },
+          { name: 'Desserts', description: 'Sweet dishes and desserts.', canteen_id: profile.canteen_id, is_active: true },
+        ];
+
+        const { error: insertError } = await supabase.from('categories').insert(defaultCategories);
+        if (insertError) throw insertError;
+
+        // Re-fetch the categories
+        const { data: newData, error: newError } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('canteen_id', profile.canteen_id)
+          .eq('is_active', true);
+
+        if (newError) throw newError;
+        data = newData;
+      }
+
       setCategories(data || []);
     } catch (error) {
       toast({
