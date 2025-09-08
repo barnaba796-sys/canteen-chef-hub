@@ -88,6 +88,66 @@ export type Database = {
           },
         ]
       }
+      inventory_items: {
+        Row: {
+          canteen_id: string
+          category: string
+          created_at: string
+          current_stock: number
+          description: string | null
+          expiry_date: string | null
+          id: string
+          is_active: boolean
+          last_restocked: string | null
+          max_stock: number
+          min_stock: number
+          name: string
+          status: string
+          supplier: string | null
+          total_value: number | null
+          unit_cost: number
+          updated_at: string
+        }
+        Insert: {
+          canteen_id: string
+          category: string
+          created_at?: string
+          current_stock?: number
+          description?: string | null
+          expiry_date?: string | null
+          id?: string
+          is_active?: boolean
+          last_restocked?: string | null
+          max_stock?: number
+          min_stock?: number
+          name: string
+          status?: string
+          supplier?: string | null
+          total_value?: number | null
+          unit_cost?: number
+          updated_at?: string
+        }
+        Update: {
+          canteen_id?: string
+          category?: string
+          created_at?: string
+          current_stock?: number
+          description?: string | null
+          expiry_date?: string | null
+          id?: string
+          is_active?: boolean
+          last_restocked?: string | null
+          max_stock?: number
+          min_stock?: number
+          name?: string
+          status?: string
+          supplier?: string | null
+          total_value?: number | null
+          unit_cost?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       menu_items: {
         Row: {
           canteen_id: string
@@ -101,6 +161,7 @@ export type Database = {
           name: string
           preparation_time: number | null
           price: number
+          stock_quantity: number | null
           updated_at: string
         }
         Insert: {
@@ -115,6 +176,7 @@ export type Database = {
           name: string
           preparation_time?: number | null
           price: number
+          stock_quantity?: number | null
           updated_at?: string
         }
         Update: {
@@ -129,6 +191,7 @@ export type Database = {
           name?: string
           preparation_time?: number | null
           price?: number
+          stock_quantity?: number | null
           updated_at?: string
         }
         Relationships: [
