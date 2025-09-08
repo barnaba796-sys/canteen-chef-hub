@@ -1,11 +1,12 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Edit, Trash2, DollarSign, Package } from "lucide-react";
-import { useState } from "react";
 import { useMenuItems } from "@/hooks/useMenuItems";
 import { AddMenuItemDialog } from "./AddMenuItemDialog";
+import { EditMenuItemDialog } from "./EditMenuItemDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,6 +22,7 @@ import {
 export const MenuManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [editingItem, setEditingItem] = useState<any>(null);
   const { menuItems, categories, loading, deleteMenuItem } = useMenuItems();
 
   const filteredItems = menuItems.filter(item => {
@@ -124,7 +126,12 @@ export const MenuManagement = () => {
                 </div>
                 
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="flex-1"
+                    onClick={() => setEditingItem(item)}
+                  >
                     <Edit className="h-3 w-3 mr-1" />
                     Edit
                   </Button>
@@ -163,6 +170,15 @@ export const MenuManagement = () => {
         <Card className="p-8 text-center">
           <p className="text-muted-foreground">No items found matching your search criteria.</p>
         </Card>
+      )}
+
+      {editingItem && (
+        <EditMenuItemDialog
+          item={editingItem}
+          categories={categories}
+          open={!!editingItem}
+          onOpenChange={(open) => !open && setEditingItem(null)}
+        />
       )}
     </div>
   );

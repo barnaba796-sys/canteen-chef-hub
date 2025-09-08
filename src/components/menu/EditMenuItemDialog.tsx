@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -8,7 +8,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -29,8 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Plus } from "lucide-react";
-import { useMenuItems, Category } from "@/hooks/useMenuItems";
+import { useMenuItems, MenuItem, Category } from "@/hooks/useMenuItems";
 
 const menuItemSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -45,33 +43,50 @@ const menuItemSchema = z.object({
 
 type MenuItemForm = z.infer<typeof menuItemSchema>;
 
-interface AddMenuItemDialogProps {
+interface EditMenuItemDialogProps {
+  item: MenuItem;
   categories: Category[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
-export const AddMenuItemDialog = ({ categories }: AddMenuItemDialogProps) => {
-  const [open, setOpen] = useState(false);
+export const EditMenuItemDialog = ({ item, categories, open, onOpenChange }: EditMenuItemDialogProps) => {
   const [loading, setLoading] = useState(false);
-  const { addMenuItem } = useMenuItems();
+  const { updateMenuItem } = useMenuItems();
 
   const form = useForm<MenuItemForm>({
     resolver: zodResolver(menuItemSchema),
     defaultValues: {
-      name: "",
-      description: "",
-      price: 0,
-      category_id: "",
-      image_url: "",
-      is_available: true,
-      preparation_time: 0,
-      stock_quantity: 0,
+      name: item.name,
+      description: item.description || "",
+      price: Number(item.price),
+      category_id: item.category_id || "",
+      image_url: item.image_url || "",
+      is_available: item.is_available,
+      preparation_time: item.preparation_time || 0,
+      stock_quantity: (item as any).stock_quantity || 0,
     },
   });
+
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        name: item.name,
+        description: item.description || "",
+        price: Number(item.price),
+        category_id: item.category_id || "",
+        image_url: item.image_url || "",
+        is_available: item.is_available,
+        preparation_time: item.preparation_time || 0,
+        stock_quantity: (item as any).stock_quantity || 0,
+      });
+    }
+  }, [item, open, form]);
 
   const onSubmit = async (values: MenuItemForm) => {
     setLoading(true);
     try {
-      await addMenuItem({
+      await updateMenuItem(item.id, {
         name: values.name,
         description: values.description,
         price: values.price,
@@ -80,10 +95,8 @@ export const AddMenuItemDialog = ({ categories }: AddMenuItemDialogProps) => {
         is_available: values.is_available,
         preparation_time: values.preparation_time,
         stock_quantity: values.stock_quantity,
-        is_active: true,
       });
-      setOpen(false);
-      form.reset();
+      onOpenChange(false);
     } catch (error) {
       // Error handled in hook
     } finally {
@@ -92,18 +105,12 @@ export const AddMenuItemDialog = ({ categories }: AddMenuItemDialogProps) => {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="bg-gradient-primary text-primary-foreground shadow-elegant">
-          <Plus className="h-4 w-4 mr-2" />
-          Add New Item
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Add New Menu Item</DialogTitle>
+          <DialogTitle>Edit Menu Item</DialogTitle>
           <DialogDescription>
-            Add a new item to your menu. Fill in the details below.
+            Update the details of "{item.name}".
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -136,64 +143,20 @@ export const AddMenuItemDialog = ({ categories }: AddMenuItemDialogProps) => {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="price"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Price ($)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      {...field}
-                      onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="category_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a category" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="preparation_time"
+                name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Preparation Time (minutes)</FormLabel>
+                    <FormLabel>Price ($)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
-                        placeholder="0"
+                        step="0.01"
+                        placeholder="0.00"
                         {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -223,6 +186,50 @@ export const AddMenuItemDialog = ({ categories }: AddMenuItemDialogProps) => {
 
             <FormField
               control={form.control}
+              name="category_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="preparation_time"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Preparation Time (minutes)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      {...field}
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="is_available"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
@@ -246,13 +253,13 @@ export const AddMenuItemDialog = ({ categories }: AddMenuItemDialogProps) => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setOpen(false)}
+                onClick={() => onOpenChange(false)}
                 className="flex-1"
               >
                 Cancel
               </Button>
               <Button type="submit" disabled={loading} className="flex-1">
-                {loading ? "Adding..." : "Add Item"}
+                {loading ? "Updating..." : "Update Item"}
               </Button>
             </div>
           </form>

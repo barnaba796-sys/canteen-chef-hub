@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useInventory } from "@/hooks/useInventory";
 import { AddInventoryDialog } from "./AddInventoryDialog";
 import { RestockDialog } from "./RestockDialog";
+import { EditInventoryDialog } from "./EditInventoryDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +24,7 @@ import {
 export const InventoryManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [editingItem, setEditingItem] = useState<any>(null);
   const { inventoryItems, loading, deleteInventoryItem } = useInventory();
 
   const categories = ["All", ...Array.from(new Set(inventoryItems.map(item => item.category)))];
@@ -191,12 +193,12 @@ export const InventoryManagement = () => {
                     <p className="text-xs text-muted-foreground mt-1">{item.description}</p>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
-                  {getStatusBadge(item.status)}
-                  <Button variant="outline" size="sm">
-                    <Edit className="h-3 w-3" />
-                  </Button>
-                </div>
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(item.status)}
+                    <Button variant="outline" size="sm" onClick={() => setEditingItem(item)}>
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                  </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -252,7 +254,7 @@ export const InventoryManagement = () => {
                           Restock
                         </Button>
                       </RestockDialog>
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button variant="outline" size="sm" className="flex-1" onClick={() => setEditingItem(item)}>
                         <Edit className="h-3 w-3 mr-1" />
                         Update
                       </Button>
@@ -293,6 +295,14 @@ export const InventoryManagement = () => {
         <Card className="p-8 text-center">
           <p className="text-muted-foreground">No inventory items found matching your criteria.</p>
         </Card>
+      )}
+
+      {editingItem && (
+        <EditInventoryDialog
+          item={editingItem}
+          open={!!editingItem}
+          onOpenChange={(open) => !open && setEditingItem(null)}
+        />
       )}
     </div>
   );

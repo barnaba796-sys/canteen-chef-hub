@@ -14,6 +14,7 @@ export interface MenuItem {
   is_available: boolean;
   is_active: boolean;
   preparation_time?: number;
+  stock_quantity?: number;
   created_at: string;
   updated_at: string;
   categories?: {
