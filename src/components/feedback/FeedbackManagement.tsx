@@ -268,7 +268,7 @@ export const FeedbackManagement = () => {
                     </div>
                     <p className="text-sm text-muted-foreground">{item.customerEmail}</p>
                     <p className="text-xs text-muted-foreground">
-                      {new Date(item.date).toLocaleDateString()} • 
+                      {new Date(item.date).toLocaleDateString('en-IN')} • 
                       Ordered: {item.orderItems.join(", ")}
                     </p>
                   </div>

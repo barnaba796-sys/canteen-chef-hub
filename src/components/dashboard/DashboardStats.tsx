@@ -27,7 +27,7 @@ export const DashboardStats = () => {
   const statsData = [
     {
       title: "Total Revenue",
-      value: `$${stats.totalRevenue.toFixed(2)}`,
+      value: `₹${stats.totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       change: "+12.5%",
       trend: "up",
       icon: DollarSign,

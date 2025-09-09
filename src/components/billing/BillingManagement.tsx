@@ -259,7 +259,7 @@ export const BillingManagement = () => {
                 <Separator className="my-3" />
                 
                 <div className="grid grid-cols-3 gap-4 text-sm text-muted-foreground">
-                  <div>Date: {new Date(invoice.date).toLocaleDateString()}</div>
+                  <div>Date: {new Date(invoice.date).toLocaleDateString('en-IN')}</div>
                   <div>Items: {invoice.items}</div>
                   <div>Type: {invoice.orderType.replace('_', ' ')}</div>
                 </div>

@@ -233,7 +233,7 @@ export const EditInventoryDialog = ({ item, open, onOpenChange }: EditInventoryD
                 name="unit_cost"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Unit Cost ($)</FormLabel>
+                    <FormLabel>Unit Cost (₹)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"

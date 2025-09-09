@@ -149,7 +149,7 @@ export const EditMenuItemDialog = ({ item, categories, open, onOpenChange }: Edi
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Price ($)</FormLabel>
+                    <FormLabel>Price (₹)</FormLabel>
                     <FormControl>
                       <Input
                         type="number"

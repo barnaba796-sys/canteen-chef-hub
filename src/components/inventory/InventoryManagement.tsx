@@ -225,12 +225,12 @@ export const InventoryManagement = () => {
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span>Cost/Unit:</span>
-                      <span className="font-medium">${item.unit_cost.toFixed(2)}</span>
+                      <span className="font-medium">₹{item.unit_cost.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Total Value:</span>
                       <span className="font-medium text-primary">
-                        ${item.total_value.toFixed(2)}
+                        ₹{item.total_value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
                     </div>
                     <div className="flex justify-between">

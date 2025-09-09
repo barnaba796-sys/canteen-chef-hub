@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { 
   Clock, 
   CheckCircle, 
@@ -175,7 +176,7 @@ export const OrderManagement = () => {
                     {order.order_items?.map((item, index) => (
                       <li key={index} className="flex justify-between">
                         <span>{item.quantity}x {item.menu_items?.name || 'Item'}</span>
-                        <span>${item.total_price}</span>
+                        <span>₹{item.total_price}</span>
                       </li>
                     )) || (
                       <li className="text-muted-foreground">No items</li>
@@ -185,7 +186,7 @@ export const OrderManagement = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Total:</span>
-                    <span className="font-semibold text-primary">${order.total_amount}</span>
+                    <span className="font-semibold text-primary">₹{order.total_amount}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Time:</span>

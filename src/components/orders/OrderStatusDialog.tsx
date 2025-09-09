@@ -106,7 +106,7 @@ export const OrderStatusDialog = ({ order, children }: OrderStatusDialogProps) =
             <h4 className="font-medium mb-2">Order Details</h4>
             <div className="space-y-1 text-sm text-muted-foreground">
               <p>Customer: {order.customer_name || 'Walk-in Customer'}</p>
-              <p>Total: ${order.total_amount}</p>
+              <p>Total: ₹{order.total_amount}</p>
               <p>Type: {order.order_type}</p>
               {order.order_items && (
                 <p>Items: {order.order_items.length} item(s)</p>

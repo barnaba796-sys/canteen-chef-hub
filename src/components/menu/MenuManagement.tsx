@@ -115,7 +115,7 @@ export const MenuManagement = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-4 w-4 text-primary" />
-                    <span className="font-semibold text-primary">${item.price}</span>
+                    <span className="font-semibold text-primary">₹{item.price}</span>
                   </div>
                   {item.preparation_time && (
                     <div className="flex items-center gap-2">

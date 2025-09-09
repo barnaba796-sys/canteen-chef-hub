@@ -83,7 +83,7 @@ export const RestockDialog = ({ item, children }: RestockDialogProps) => {
             </div>
             <div className="space-y-1">
               <span className="text-muted-foreground">Current Value:</span>
-              <div className="font-medium">${item.total_value.toFixed(2)}</div>
+              <div className="font-medium">₹{item.total_value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             </div>
           </div>
 
@@ -117,7 +117,7 @@ export const RestockDialog = ({ item, children }: RestockDialogProps) => {
                   </div>
                   <div className="space-y-1">
                     <span className="text-muted-foreground">New Value:</span>
-                    <div className="font-medium">${newValue.toFixed(2)}</div>
+                    <div className="font-medium">₹{newValue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                   </div>
                 </div>
               )}

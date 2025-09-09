@@ -213,7 +213,7 @@ export const ClearanceManagement = () => {
                   </div>
                   <div>
                     <p className="text-muted-foreground">Expiry</p>
-                    <p className="font-medium">{new Date(item.expiryDate).toLocaleDateString()}</p>
+                    <p className="font-medium">{new Date(item.expiryDate).toLocaleDateString('en-IN')}</p>
                   </div>
                 </div>
 
