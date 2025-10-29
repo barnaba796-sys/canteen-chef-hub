@@ -34,28 +34,29 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("dashboard");
 
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate("/auth");
-    }
-  }, [user, loading, navigate]);
+  // Temporarily disabled authentication check
+  // useEffect(() => {
+  //   if (!loading && !user) {
+  //     navigate("/auth");
+  //   }
+  // }, [user, loading, navigate]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="h-12 w-12 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4">
-            <Zap className="h-6 w-6 text-primary-foreground animate-pulse" />
-          </div>
-          <p className="text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="min-h-screen bg-background flex items-center justify-center">
+  //       <div className="text-center">
+  //         <div className="h-12 w-12 bg-gradient-primary rounded-full flex items-center justify-center mx-auto mb-4">
+  //           <Zap className="h-6 w-6 text-primary-foreground animate-pulse" />
+  //         </div>
+  //         <p className="text-muted-foreground">Loading dashboard...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
-  if (!user) {
-    return null;
-  }
+  // if (!user) {
+  //   return null;
+  // }
 
   const renderContent = () => {
     switch (activeTab) {
@@ -150,8 +151,8 @@ const Dashboard = () => {
       <Navbar 
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         user={{
-          name: profile?.full_name || user?.email || "User",
-          role: profile?.role || "User"
+          name: profile?.full_name || user?.email || "Guest User",
+          role: profile?.role || "owner"
         }}
       />
       
