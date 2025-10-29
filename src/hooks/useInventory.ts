@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { mongodb } from '@/integrations/mongodb/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from './use-toast';
 
@@ -32,7 +32,7 @@ export const useInventory = () => {
     if (!profile?.canteen_id) return;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await mongodb
         .from('inventory_items')
         .select('*')
         .eq('canteen_id', profile.canteen_id)
@@ -53,7 +53,7 @@ export const useInventory = () => {
     if (!profile?.canteen_id) return;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await mongodb
         .from('inventory_items')
         .insert([{ ...item, canteen_id: profile.canteen_id }])
         .select()
@@ -80,7 +80,7 @@ export const useInventory = () => {
 
   const updateInventoryItem = async (id: string, updates: Partial<InventoryItem>) => {
     try {
-      const { error } = await supabase
+      const { error } = await mongodb
         .from('inventory_items')
         .update(updates)
         .eq('id', id);
@@ -105,7 +105,7 @@ export const useInventory = () => {
 
   const restockItem = async (id: string, quantity: number) => {
     try {
-      const { data: currentItem, error: fetchError } = await supabase
+      const { data: currentItem, error: fetchError } = await mongodb
         .from('inventory_items')
         .select('current_stock, min_stock')
         .eq('id', id)
@@ -115,7 +115,7 @@ export const useInventory = () => {
 
       const newStock = currentItem.current_stock + quantity;
 
-      const { error } = await supabase
+      const { error } = await mongodb
         .from('inventory_items')
         .update({
           current_stock: newStock,
@@ -143,7 +143,7 @@ export const useInventory = () => {
 
   const deleteInventoryItem = async (id: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await mongodb
         .from('inventory_items')
         .update({ is_active: false })
         .eq('id', id);

@@ -3,14 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { supabase } from "@/integrations/supabase/client";
+import { mongodb } from "@/integrations/mongodb/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -59,7 +58,7 @@ export default function Auth() {
   useEffect(() => {
     // Check if user is already logged in
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await mongodb.auth.getSession();
       if (session) {
         navigate("/dashboard");
       }
@@ -70,7 +69,7 @@ export default function Auth() {
   const onLogin = async (values: LoginForm) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error } = await mongodb.auth.signInWithPassword({
         email: values.email,
         password: values.password,
       });
@@ -98,7 +97,7 @@ export default function Auth() {
     try {
       const redirectUrl = `${window.location.origin}/dashboard`;
       
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await mongodb.auth.signUp({
         email: values.email,
         password: values.password,
         options: {

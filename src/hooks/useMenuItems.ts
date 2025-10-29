@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { mongodb } from '@/integrations/mongodb/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from './use-toast';
 
@@ -41,19 +41,36 @@ export const useMenuItems = () => {
     if (!profile?.canteen_id) return;
 
     try {
-      const { data, error } = await supabase
+      // Fetch menu items
+      const { data: items, error: itemsError } = await mongodb
         .from('menu_items')
-        .select(`
-          *,
-          categories (
-            name
-          )
-        `)
+        .select('*')
         .eq('canteen_id', profile.canteen_id)
         .eq('is_active', true);
 
-      if (error) throw error;
-      setMenuItems(data || []);
+      if (itemsError) throw itemsError;
+
+      // Fetch categories for each menu item
+      const itemsWithCategories = await Promise.all(
+        (items || []).map(async (item) => {
+          if (!item.category_id) return item;
+
+          const { data: category, error: categoryError } = await mongodb
+            .from('categories')
+            .select('name')
+            .eq('id', item.category_id)
+            .maybeSingle();
+
+          if (categoryError) throw categoryError;
+
+          return {
+            ...item,
+            categories: category
+          };
+        })
+      );
+
+      setMenuItems(itemsWithCategories);
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -67,7 +84,7 @@ export const useMenuItems = () => {
     if (!profile?.canteen_id) return;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await mongodb
         .from('categories')
         .select('*')
         .eq('canteen_id', profile.canteen_id)
@@ -88,7 +105,7 @@ export const useMenuItems = () => {
     if (!profile?.canteen_id) return;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await mongodb
         .from('menu_items')
         .insert([{ ...item, canteen_id: profile.canteen_id }])
         .select()
@@ -115,7 +132,7 @@ export const useMenuItems = () => {
 
   const updateMenuItem = async (id: string, updates: Partial<MenuItem>) => {
     try {
-      const { error } = await supabase
+      const { error } = await mongodb
         .from('menu_items')
         .update(updates)
         .eq('id', id);
@@ -140,7 +157,7 @@ export const useMenuItems = () => {
 
   const deleteMenuItem = async (id: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await mongodb
         .from('menu_items')
         .update({ is_active: false })
         .eq('id', id);

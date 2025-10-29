@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { mongodb } from '@/integrations/mongodb/client';
 import { useAuth } from '@/contexts/AuthContext';
 
 export interface DashboardStats {
@@ -28,7 +28,7 @@ export const useDashboardStats = () => {
 
     try {
       // Get total orders and revenue
-      const { data: orders, error: ordersError } = await supabase
+      const { data: orders, error: ordersError } = await mongodb
         .from('orders')
         .select('total_amount, status, created_at')
         .eq('canteen_id', profile.canteen_id);
@@ -36,9 +36,9 @@ export const useDashboardStats = () => {
       if (ordersError) throw ordersError;
 
       // Get active menu items count
-      const { count: menuItemsCount, error: menuError } = await supabase
+      const { data: menuItems, error: menuError } = await mongodb
         .from('menu_items')
-        .select('*', { count: 'exact', head: true })
+        .select('*')
         .eq('canteen_id', profile.canteen_id)
         .eq('is_active', true);
 
@@ -67,7 +67,7 @@ export const useDashboardStats = () => {
       setStats({
         totalOrders,
         totalRevenue,
-        activeMenuItems: menuItemsCount || 0,
+        activeMenuItems: menuItems?.length || 0,
         todayOrders,
         pendingOrders,
         completedOrders,

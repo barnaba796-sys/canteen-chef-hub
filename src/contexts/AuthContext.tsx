@@ -1,6 +1,16 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { mongodb } from '@/integrations/mongodb/client';
+
+interface User {
+  id: string;
+  email: string;
+  [key: string]: any;
+}
+
+interface Session {
+  access_token: string;
+  user: User;
+}
 
 interface Profile {
   id: string;
@@ -47,7 +57,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await mongodb
         .from('profiles')
         .select('*')
         .eq('user_id', userId)
@@ -72,7 +82,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = mongodb.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
@@ -91,7 +101,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    mongodb.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
@@ -106,7 +116,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await mongodb.auth.signOut();
     if (error) {
       console.error('Error signing out:', error);
     }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { mongodb } from '@/integrations/mongodb/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from './use-toast';
 
@@ -43,23 +43,51 @@ export const useOrders = () => {
     if (!profile?.canteen_id) return;
 
     try {
-      const { data, error } = await supabase
+      // Fetch orders
+      const { data: ordersData, error: ordersError } = await mongodb
         .from('orders')
-        .select(`
-          *,
-          order_items (
-            *,
-            menu_items (
-              name,
-              price
-            )
-          )
-        `)
+        .select('*')
         .eq('canteen_id', profile.canteen_id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setOrders(data || []);
+      if (ordersError) throw ordersError;
+
+      // Fetch order items for each order
+      const ordersWithItems = await Promise.all(
+        (ordersData || []).map(async (order) => {
+          const { data: items, error: itemsError } = await mongodb
+            .from('order_items')
+            .select('*')
+            .eq('order_id', order.id);
+
+          if (itemsError) throw itemsError;
+
+          // Fetch menu item details for each order item
+          const itemsWithDetails = await Promise.all(
+            (items || []).map(async (item) => {
+              const { data: menuItem, error: menuError } = await mongodb
+                .from('menu_items')
+                .select('name, price')
+                .eq('id', item.menu_item_id)
+                .maybeSingle();
+
+              if (menuError) throw menuError;
+
+              return {
+                ...item,
+                menu_items: menuItem
+              };
+            })
+          );
+
+          return {
+            ...order,
+            order_items: itemsWithDetails
+          };
+        })
+      );
+
+      setOrders(ordersWithItems);
     } catch (error: any) {
       toast({
         title: 'Error',
@@ -71,7 +99,7 @@ export const useOrders = () => {
 
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await mongodb
         .from('orders')
         .update({ 
           status, 
@@ -103,7 +131,7 @@ export const useOrders = () => {
 
     try {
       // Create order
-      const { data: order, error: orderError } = await supabase
+      const { data: order, error: orderError } = await mongodb
         .from('orders')
         .insert([{ ...orderData, canteen_id: profile.canteen_id }])
         .select()
@@ -117,7 +145,7 @@ export const useOrders = () => {
         order_id: order.id
       }));
 
-      const { error: itemsError } = await supabase
+      const { error: itemsError } = await mongodb
         .from('order_items')
         .insert(orderItemsWithOrderId);
 
